@@ -135,36 +135,6 @@
             "cardano-address": {
                 "version": "3.12.0"
             }
-        },
-
-        "guild": {
-            "cardano-node": {
-                "version": "1.35.5",
-                "node-port": "5003",
-                "submit-api-port": "8997",
-                "required-files": {
-                    "config.json": "d https://book.world.dev.cardano.org/environments/%/config.json",
-                    "topology.json": "d https://book.world.dev.cardano.org/environments/%/topology.json",
-                    "byron-genesis.json": "d https://book.world.dev.cardano.org/environments/%/byron-genesis.json",
-                    "shelley-genesis.json": "d https://book.world.dev.cardano.org/environments/%/shelley-genesis.json",
-                    "alonzo-genesis.json": "d https://book.world.dev.cardano.org/environments/%/alonzo-genesis.json",
-                    "submit-api-config.json": "d https://book.world.dev.cardano.org/environments/%/submit-api-config.json"
-                }
-            },
-
-            "cardano-db-sync": {
-                "version": "13.1.0.0",
-                "required-files": {
-                    "db-sync-config.json": "d https://book.world.dev.cardano.org/environments/%/db-sync-config.json",
-                    "postgresql-setup.sh": "d https://raw.githubusercontent.com/input-output-hk/cardano-db-sync/#/scripts/postgresql-setup.sh",
-                    "pgpass": "p /var/run/postgresql:5432:%:*:*",
-                    "schema/": "dtgz https://github.com/input-output-hk/cardano-db-sync/archive/refs/tags/#.tar.gz cardano-db-sync-#/schema/ 1"
-                }
-            },
-
-            "cardano-address": {
-                "version": "3.12.0"
-            }
         }
     }
 }
