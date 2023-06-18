@@ -1,45 +1,93 @@
-# Cardano Fast Deploy tools
+# CFD - Cardano Fast Deployment
+Your toolkit for quick and convenient management of your Cardano software.
+Powered by MDS pool.
 
-Attention! Not all scripts need to be executed directly. Some of them are auxiliary. A more convenient shell for working with them will be written later.
+## Quick Start
+**Installation**
+\```bash
+git clone https://github.com/Fell-x27/cfd.git
+cd ./cfd
+chmod +x ./cardano.sh
+\```
+**Usage**
+\```bash
+./cardano.sh
+\```
+Then follow the instructions :)
 
-## Instructions:
-### Preparing for work:
+That's enough to get acquainted with Cardano!
 
-Open the conf.json file and specify:
-* The path to the directory where the environment should be deployed;
-* Server's IP address;
-* Software versions, port numbers, etc. for the required networks;
-* You can add your own networks if needed;
-* Remove unnecessary software from the configuration of required networks; 
-* Make sure that the scripts have permission to execute!
-* chmod +x ./* will grant it if necessary;
+Installation and configuration of Cardano software happen automatically at the first launch.
+Even the deployment of db-sync, which usually poses difficulties for beginners, will be simple and quick, thanks to the built-in wizard!
 
-You can call scripts like `./software_deploy.sh <network_name>` or just `software_deploy.sh`
+## CFD supports two modes:
+* Interactive - run `./cardano.sh` and select the required menu items
+* Command - call `./cardano.sh` immediately with the required items, for example:
+    * Running a node in passive mode -  `./cardano.sh preprod run-software node-relay`
+    * Jumping straight to the software selection menu - `./cardano.sh preprod run-software`
+    * Jumping to the mode selection in a given network - `./cardano.sh preprod`
 
-### Software installation & configuration:
-* `software_deploy.sh [<network>]`
-* `software_config.sh [<network>]`
-* Then you can find your config files here: `/cardano_path_from_config/networks/<network>/config/`
-* In order to switch the software version, just switch it in `conf.json` file and then launch run deploy again;
+As you can see, you can even mix both approaches if it's more convenient for you.
 
-### Run it!
-* there are run-scripts like `run_node.sh`, just launch it :)
-* If you want to omit your IP, add --no-ip flag;
-* Use `check_sync.sh` to check your sync state;
+## FAQ:
+**I want to adjust the configs for myself, how can I do that?**
+In the CFD directory: networks->%network_name%->config are all the auxiliary files that may be useful to you;
 
-### Stake Pool Registration:
-* Create wallet with `wallet_create.sh` or `wallet_restore.sh` command;
-* Check your address and funds with `get_utxo.sh`
-* Fund it if needed;
-* Register your stake key with `reg_stake_key.sh`
-* Create pool's cold keys with: `gen_pool_keys.sh`
-* Create Pool Cert with: `gen_pool_cert.sh`
-* Register Pool Cert with: `reg_pool_cert.sh`
-* Create/update KES keys and opcert with: `gen_kes.sh`
+**Where is the blockchain, wallets, and all such other stored?**
+In the CFD directory: networks->%network_name%->storage
 
-Then launch your node with `run_pool.sh` instead of `run_node.sh`
-In order to change your pool's parameters, just run `gen_pool_cert.sh` and `reg_pool_cert.sh` again;
+**I created a wallet, where are its keys stored?**
+In the CFD directory: networks->%network_name%->keys, the same place where different keys for pool operation will be stored;
 
+**What is the pool folder for?**
+Mainly, for storing certificates;
 
-There are also runners for cardano-db-sync and submit api.
-Also you can use `manage-dbsync.sh` wrapper of original db-sync-tool.
+**Where are the executable files stored?**
+CFD: networks->%network_name%->bin
+
+**I accidentally deleted bin/config, what should I do?**
+Nothing, these folders only contain symlinks to real files, CFD will restore them automatically at the next launch;
+
+**Are the wallet/pool keys encrypted?**
+Currently, like most console solutions, they are not. You must guard them carefully.
+
+**What is the cdf/software folder for?**
+This folder contains the software and current configuration files for different networks, please do not touch this folder without an extreme need, it is 100% service;
+
+**There is an update for cardano-%softwareName%, how can I install it?**
+There is a conf.json file next to cardano.sh:
+* open it;
+* find the "networks" section
+* find the software you need
+* find the "version" section
+* write the new version
+
+If the software requires new additional files (for example, configs), add the following to the above:
+* find the "general" section
+* find the "software" section
+* find the software you need
+* find the "required-files" section
+* write the required file
+* then, in the section where you set the version, also find "required-files"
+* write your file there according to the example of the existing ones:
+"filename": "instruction"
+
+The instructions for obtaining the file are of different types: 
+1) "d url" - download a file from a direct link in url
+Example: "d https://hydra.iohk.io/job/Cardano/cardano-node/cardano-deployment/latest-finished/download/1/testnet-config.json"
+2) "g %softwareName%" - get a file from a local machine, %softwareName% - the name of the software from which to take the file, which should already be installed in the system.
+3) If there is no instruction, the script will try to get the file from the installed software.
+
+**What is the CFD characteristics?**
+* Bash only;
+* Automatic installation of software;
+* Automatic configuration of software;
+* Automated pool management;
+* Automatic handling of configuration files;
+* Support for multiple networks at the same time;
+* Convenient switching of software versions;
+* Deployment of Cardano infrastructure "in one command";
+* Compatibility with systemctl and similar systems;
+* No untrusted external dependencies;
+* Lightweight;
+
