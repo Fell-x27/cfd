@@ -38,26 +38,26 @@ As you can see, you can even mix both approaches if it's more convenient for you
 
 ## FAQ:
 ### **I want to adjust the configs for myself, how can I do that?**
-In the CFD directory: networks->%network_name%->config are all the auxiliary files that may be useful to you;
+In the CFD directory: `networks->%network_name%->config` are all the auxiliary files that may be useful to you;
 
 
 ### **Where is the blockchain, wallets, and all such other stored?**
-In the CFD directory: networks->%network_name%->storage
+In the CFD directory: `networks->%network_name%->storage`
 
 
 ### **I created a wallet, where are its keys stored?**
-In the CFD directory: networks->%network_name%->keys, the same place where different keys for pool operation will be stored;
+In the CFD directory: `networks->%network_name%->keys`, the same place where different keys for pool operation will be stored;
 
 
-### **What is the pool folder for?**
+### **What is the `pool` folder for?**
 Mainly, for storing certificates;
 
 
 ### **Where are the executable files stored?**
-CFD: networks->%network_name%->bin
+`cfd/networks->%network_name%->bin`
 
 
-### **I accidentally deleted bin/config, what should I do?**
+### **I accidentally deleted `bin`/`config`, what should I do?**
 Nothing, these folders only contain symlinks to real files, CFD will restore them automatically at the next launch;
 
 
@@ -65,7 +65,7 @@ Nothing, these folders only contain symlinks to real files, CFD will restore the
 Currently, like most console solutions, they are not. You must guard them carefully.
 
 
-### **What is the cdf/software folder for?**
+### **What is the `cdf/software` folder for?**
 This folder contains the software and current configuration files for different networks, please do not touch this folder without an extreme need, it is 100% service;
 
 ### What to do if the software configuration structure has changed and I already had custom parameters written?
@@ -73,7 +73,6 @@ You don't need to do anything, CFD will compare the configs itself, describe the
 
 
 https://github.com/Fell-x27/cfd/assets/18358207/809d20a3-9351-4dc1-8b55-d0e533b83e39
-
 
 
 
@@ -99,14 +98,14 @@ If the software requires new additional files (for example, configs), add the fo
 5. write the required file
 6.  then, in the section where you set the version, also find "required-files"
 7.  write your file there according to the example of the existing ones:
-"filename": "instruction"
+   "filename": "instruction"
 
 The instructions for obtaining a file can be of different types:
-* "d url" - download a file via a direct link in the url.
+* `"d url"` - download a file via a direct link in the url.
 >For example: "d https://book.world.dev.cardano.org/environments/%/db-sync-config.json"
-* "dtgz url path strip" - download an archive via the url link, extract the content from path, save it, reducing the path to the content to the strip level.
+* `"dtgz url path strip"` - download an archive via the url link, extract the content from path, save it, reducing the path to the content to the strip level.
 >For example: "dtgz https://github.com/input-output-hk/cardano-db-sync/archive/refs/tags/#.tar.gz cardano-db-sync-#/schema/ 1"
-* "p text chmod" - create a file with the text content and assign it chmod access rights.
+* `"p text chmod"` - create a file with the text content and assign it chmod access rights.
 >For example: "p /var/run/postgresql:5432:%:: 0600"
 
 ### Can I add additional networks?
