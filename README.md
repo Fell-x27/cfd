@@ -130,6 +130,11 @@ This is a CFD wrapper over cardano-cli that performs all the same functions, but
 * It independently adds the path to the socket if needed;
 * It independently adds network-magic if needed;
 * In general, it's the same cli, but with enhanced comfort :)
+  
+
+
+https://github.com/Fell-x27/cfd/assets/18358207/8e5e39c7-6263-42ba-ace9-82b9baaadc2d
+
 
 
 ## **What is the CFD features?**
