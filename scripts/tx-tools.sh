@@ -1,11 +1,11 @@
 #!/bin/bash
 
-function get_protocol(){
+function get-protocol {
     CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH \
     $CARDANO_BINARIES_DIR/cardano-cli query protocol-parameters "${MAGIC[@]}" --out-file $CARDANO_CONFIG_DIR/protocol.json
 }
 
-function get_utxo_json(){
+function get-utxo-json {
     CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH \
     $CARDANO_BINARIES_DIR/cardano-cli query utxo \
         --address $(cat $CARDANO_KEYS_DIR/payment/base.addr) \
@@ -13,18 +13,30 @@ function get_utxo_json(){
         "${MAGIC[@]}"
 }
 
-function build_tx(){
+function get-utxo-pretty {
+    echo ""
+    cat $CARDANO_KEYS_DIR/payment/base.addr
+    echo ""
+    echo ""
+    CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH \
+    $CARDANO_BINARIES_DIR/cardano-cli query utxo \
+    --address $(cat $CARDANO_KEYS_DIR/payment/base.addr) \
+    "${MAGIC[@]}"
+}
+
+function build-tx {
     local TX_NAME=$1
     local DEPOSIT=${2:-0}
+    local MIN_UTXO=$(expr $DEPOSIT + 2000000)
     shift 2
     
 
-    #local CERTIFICATES=( "${CERTIFICATES[@]/#/--certificate-file }" )
-
     local CERTIFICATES=("$@")
-    local CERTIFICATES=( $(build_arg_array "--certificate-file" ${CERTIFICATES[@]}) )
+    local CERTIFICATES=( $(build-arg-array "--certificate-file" ${CERTIFICATES[@]}) )
     
-    local UTXO_list=$(get_utxo_json)
+    local UTXO_list=$(wrap-cli-command get-utxo-json)
+    
+    
     local UTXO_hashes=($(echo $UTXO_list | jq -r ". | keys" | jq -r ".[]"))
     local CHOSEN_UTXO=("0#0" 0)
 
@@ -37,6 +49,13 @@ function build_tx(){
         fi
     done
 
+    
+    if [ ${CHOSEN_UTXO[1]} -lt $MIN_UTXO ]; then
+        echo -e "\e[30;43mWARNING!\e[0m Can't process transaction! The balance of the wallet is insufficient. Please, fund it."
+        echo "There should be at least one UTxO with approximately $MIN_UTXO lovelaces and no assets:"
+        wrap-cli-command get-utxo-pretty
+        exit 0
+    fi   
 
     CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH $CARDANO_BINARIES_DIR/cardano-cli transaction build-raw \
         --tx-in ${CHOSEN_UTXO[0]} \
@@ -46,14 +65,16 @@ function build_tx(){
         ${CERTIFICATES[@]}
 
 
-    get_protocol
+    get-protocol
 
     local FEE=($($CARDANO_BINARIES_DIR/cardano-cli transaction calculate-min-fee \
      --protocol-params-file $CARDANO_CONFIG_DIR/protocol.json  \
      --tx-in-count 1 \
      --tx-out-count 1 \
      --witness-count 2 \
-     --tx-body-file $CARDANO_KEYS_DIR/$TX_NAME.raw))
+     --tx-body-file $CARDANO_KEYS_DIR/$TX_NAME.raw \
+    "${MAGIC[@]}"     
+     ))
 
     local CHANGE=$(expr ${CHOSEN_UTXO[1]} - $DEPOSIT - ${FEE[0]})
 
@@ -65,12 +86,11 @@ function build_tx(){
         ${CERTIFICATES[@]}
 }
 
-function sign_tx(){
+function sign-tx {
     local TX_NAME=$1
     shift
     local SIGN_KEYS=("$@")
-    #local SIGN_KEYS=( "${SIGN_KEYS[@]/#/--signing-key-file }" )
-    local SIGN_KEYS=( $(build_arg_array "--signing-key-file" "${SIGN_KEYS[@]}") )
+    local SIGN_KEYS=( $(build-arg-array "--signing-key-file" "${SIGN_KEYS[@]}") )
 
     CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH $CARDANO_BINARIES_DIR/cardano-cli transaction sign \
         --tx-body-file $CARDANO_KEYS_DIR/$TX_NAME.raw \
@@ -81,7 +101,7 @@ function sign_tx(){
     rm $CARDANO_KEYS_DIR/$TX_NAME.raw
 }
 
-function send_tx(){
+function send-tx {
     local TX_NAME=$1
 
     CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH $CARDANO_BINARIES_DIR/cardano-cli transaction submit \
