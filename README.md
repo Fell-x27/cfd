@@ -67,30 +67,56 @@ Currently, like most console solutions, they are not. You must guard them carefu
 ### **What is the cdf/software folder for?**
 This folder contains the software and current configuration files for different networks, please do not touch this folder without an extreme need, it is 100% service;
 
+### What to do if the software configuration structure has changed and I already had custom parameters written?
+You don't need to do anything, CFD will compare the configs itself, describe the changes noticed to you, transfer your changes to the new version, merge the files, provide a report of the work done, and then offer to familiarize yourself with the final version of the file in interactive mode.
+
+### Which software is supported out-of-the-box?
+* cardano-node (+ cardano-submit-api)
+* cardano-db-sync
+* cardano-wallet
+* cardano-addresses
 
 ### **There is an update for cardano-%softwareName%, how can I install it?**
 There is a conf.json file next to cardano.sh:
-* open it;
-* find the "networks" section
-* find the software you need
-* find the "version" section
-* write the new version
+1. open it;
+2. find the "networks" section
+3. find the software you need
+4. find the "version" section
+5. write the new version
 
 If the software requires new additional files (for example, configs), add the following to the above:
-* find the "general" section
-* find the "software" section
-* find the software you need
-* find the "required-files" section
-* write the required file
-* then, in the section where you set the version, also find "required-files"
-* write your file there according to the example of the existing ones:
+1. find the "general" section
+2. find the "software" section
+3. find the software you need
+4. find the "required-files" section
+5. write the required file
+6.  then, in the section where you set the version, also find "required-files"
+7.  write your file there according to the example of the existing ones:
 "filename": "instruction"
 
-The instructions for obtaining the file are of different types: 
-1) "d url" - download a file from a direct link in url
-Example: "d https://hydra.iohk.io/job/Cardano/cardano-node/cardano-deployment/latest-finished/download/1/testnet-config.json"
-2) "g %softwareName%" - get a file from a local machine, %softwareName% - the name of the software from which to take the file, which should already be installed in the system.
-3) If there is no instruction, the script will try to get the file from the installed software.
+The instructions for obtaining a file can be of different types:
+* "d url" - download a file via a direct link in the url.
+>For example: "d https://book.world.dev.cardano.org/environments/%/db-sync-config.json"
+* "dtgz url path strip" - download an archive via the url link, extract the content from path, save it, reducing the path to the content to the strip level.
+>For example: "dtgz https://github.com/input-output-hk/cardano-db-sync/archive/refs/tags/#.tar.gz cardano-db-sync-#/schema/ 1"
+* "p text chmod" - create a file with the text content and assign it chmod access rights.
+>For example: "p /var/run/postgresql:5432:%:: 0600"
+
+### Can I add additional networks?
+Yes, simply add them to conf.json, following the examples already there.
+
+### Can I create a staking pool?
+Yes, of course. This is a standard option, just use the pool-manager in the menu.
+
+### Can CFD be used in production?
+CFD manages the entire infrastructure of the Medusa Wallet.
+
+### What's the purpose of the cli option in the start menu?
+This is a CFD wrapper over cardano-cli that performs all the same functions, but:
+
+* It independently adds the path to the socket if needed;
+* It independently adds network-magic if needed;
+* In general, it's the same cli, but with enhanced comfort :)
 
 
 ## **What is the CFD features?**
