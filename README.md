@@ -1,6 +1,7 @@
 # CFD - Cardano Fast Deployment
 Your toolkit for quick and convenient management of your Cardano software.
-Powered by MDS pool.
+
+❤️ Powered by *MDS* pool. ❤️
 
 
 
@@ -132,3 +133,5 @@ This is a CFD wrapper over cardano-cli that performs all the same functions, but
 * No untrusted external dependencies;
 * Lightweight;
 
+
+❤️ Powered by *MDS* pool. ❤️
