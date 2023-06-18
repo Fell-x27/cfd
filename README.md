@@ -71,6 +71,12 @@ This folder contains the software and current configuration files for different 
 ### What to do if the software configuration structure has changed and I already had custom parameters written?
 You don't need to do anything, CFD will compare the configs itself, describe the changes noticed to you, transfer your changes to the new version, merge the files, provide a report of the work done, and then offer to familiarize yourself with the final version of the file in interactive mode.
 
+
+https://github.com/Fell-x27/cfd/assets/18358207/809d20a3-9351-4dc1-8b55-d0e533b83e39
+
+
+
+
 ### Which software is supported out-of-the-box?
 * cardano-node (+ cardano-submit-api)
 * cardano-db-sync
