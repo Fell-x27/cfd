@@ -124,12 +124,12 @@ Yes, of course. This is a standard option, just use the pool-manager in the menu
 ### Can CFD be used in production?
 CFD manages the entire infrastructure of the Medusa Wallet.
 
-### What's the purpose of the cli option in the start menu?
-This is a CFD wrapper over cardano-cli that performs all the same functions, but:
+### What's the purpose of the `cli` option in the start menu?
+This is a CFD wrapper over `cardano-cli` that performs all the same functions, but:
 
 * It independently adds the path to the socket if needed;
 * It independently adds network-magic if needed;
-* In general, it's the same cli, but with enhanced comfort :)
+* In general, it's the same `cardano-cli`, but with enhanced comfort :)
   
 
 
