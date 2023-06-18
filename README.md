@@ -2,23 +2,27 @@
 Your toolkit for quick and convenient management of your Cardano software.
 Powered by MDS pool.
 
+
+
 ## Quick Start
 **Installation**
-\```bash
+```bash
 git clone https://github.com/Fell-x27/cfd.git
 cd ./cfd
 chmod +x ./cardano.sh
-\```
+```
 **Usage**
-\```bash
+```bash
 ./cardano.sh
-\```
+```
 Then follow the instructions :)
 
 That's enough to get acquainted with Cardano!
 
 Installation and configuration of Cardano software happen automatically at the first launch.
 Even the deployment of db-sync, which usually poses difficulties for beginners, will be simple and quick, thanks to the built-in wizard!
+
+
 
 ## CFD supports two modes:
 * Interactive - run `./cardano.sh` and select the required menu items
@@ -29,32 +33,42 @@ Even the deployment of db-sync, which usually poses difficulties for beginners, 
 
 As you can see, you can even mix both approaches if it's more convenient for you.
 
+
+
 ## FAQ:
-**I want to adjust the configs for myself, how can I do that?**
+### **I want to adjust the configs for myself, how can I do that?**
 In the CFD directory: networks->%network_name%->config are all the auxiliary files that may be useful to you;
 
-**Where is the blockchain, wallets, and all such other stored?**
+
+### **Where is the blockchain, wallets, and all such other stored?**
 In the CFD directory: networks->%network_name%->storage
 
-**I created a wallet, where are its keys stored?**
+
+### **I created a wallet, where are its keys stored?**
 In the CFD directory: networks->%network_name%->keys, the same place where different keys for pool operation will be stored;
 
-**What is the pool folder for?**
+
+### **What is the pool folder for?**
 Mainly, for storing certificates;
 
-**Where are the executable files stored?**
+
+### **Where are the executable files stored?**
 CFD: networks->%network_name%->bin
 
-**I accidentally deleted bin/config, what should I do?**
+
+### **I accidentally deleted bin/config, what should I do?**
 Nothing, these folders only contain symlinks to real files, CFD will restore them automatically at the next launch;
 
-**Are the wallet/pool keys encrypted?**
+
+### **Are the wallet/pool keys encrypted?**
 Currently, like most console solutions, they are not. You must guard them carefully.
 
-**What is the cdf/software folder for?**
+
+### **What is the cdf/software folder for?**
 This folder contains the software and current configuration files for different networks, please do not touch this folder without an extreme need, it is 100% service;
 
-**There is an update for cardano-%softwareName%, how can I install it?**
+
+### **There is an update for cardano-%softwareName%, how can I install it?**
 There is a conf.json file next to cardano.sh:
 * open it;
 * find the "networks" section
@@ -78,7 +92,8 @@ Example: "d https://hydra.iohk.io/job/Cardano/cardano-node/cardano-deployment/la
 2) "g %softwareName%" - get a file from a local machine, %softwareName% - the name of the software from which to take the file, which should already be installed in the system.
 3) If there is no instruction, the script will try to get the file from the installed software.
 
-**What is the CFD characteristics?**
+
+## **What is the CFD features?**
 * Bash only;
 * Automatic installation of software;
 * Automatic configuration of software;
