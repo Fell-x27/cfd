@@ -20,8 +20,15 @@ Then follow the instructions :)
 
 That's enough to get acquainted with Cardano!
 
-Installation and configuration of Cardano software happen automatically at the first launch.
-Even the deployment of db-sync, which usually poses difficulties for beginners, will be simple and quick, thanks to the built-in wizard!
+CDF will help you to:
+1) Automatically install, configure and run Cardano software;
+2) Monitor the synchronization of your node;
+3) Automatically ensure the connectivity of different components;
+4) Create/recover a mnemonic wallet and check its balance;
+5) Automate the creation and maintenance of a staking pool (including related transactions);
+6) Automatically track changes in configs between software versions and merge them, preserving user edits;
+7) Even launching `db-sync` will seem easy to you!
+8) The built-in smart wrapper over `cardano-cli` will handle situations where a socket or magic needs to be inserted, no headaches!
 
 
 
@@ -84,20 +91,20 @@ https://github.com/Fell-x27/cfd/assets/18358207/809d20a3-9351-4dc1-8b55-d0e533b8
 
 ### **There is an update for cardano-%softwareName%, how can I install it?**
 There is a conf.json file next to cardano.sh:
-1. open it;
-2. find the "networks" section
-3. find the software you need
-4. find the "version" section
-5. write the new version
+1) open it;
+2) find the "networks" section
+3) find the software you need
+4) find the "version" section
+5) write the new version
 
 If the software requires new additional files (for example, configs), add the following to the above:
-1. find the "general" section
-2. find the "software" section
-3. find the software you need
-4. find the "required-files" section
-5. write the required file
-6.  then, in the section where you set the version, also find "required-files"
-7.  write your file there according to the example of the existing ones:
+1) find the "general" section
+2) find the "software" section
+3) find the software you need
+4) find the "required-files" section
+5) write the required file
+6)  then, in the section where you set the version, also find "required-files"
+7)  write your file there according to the example of the existing ones:
    "filename": "instruction"
 
 The instructions for obtaining a file can be of different types:
