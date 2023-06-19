@@ -1,7 +1,8 @@
 #!/bin/bash
 
 function wallet-manager {
-
+    echo "---"
+    prepare_software "cardano-address" "issues"
     echo ""
     echo "***************************************"
     AVAILABLE_ACTIONS=("wallet-create" "wallet-restore" "get-wallet-utxo")
@@ -88,6 +89,7 @@ function wallet-create {
         CADDR=$CARDANO_BINARIES_DIR/cardano-address
         MNEMONIC_PATH=$CARDANO_KEYS_DIR/mnemonic.txt
         MNEMONIC=$($CADDR recovery-phrase generate)
+        
 
         echo $MNEMONIC > $MNEMONIC_PATH
         chmod 0400 $MNEMONIC_PATH

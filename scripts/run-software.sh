@@ -1,6 +1,5 @@
 #!/bin/bash
 
-source "$(dirname "$0")/scripts/software-tools.sh"
 source "$(dirname "$0")/scripts/runners.sh"
 
 function run-software {

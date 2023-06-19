@@ -225,7 +225,12 @@ function reg-pool-cert {
     echo "Checking pool status..."
 
     local POOL_STATE=$(wrap-cli-command get-pool-state $POOL_ID)
-
+    
+    KEY=$(echo "$POOL_STATE" | jq -r 'keys[0]')
+    FUTURE_POOL_PARAMS=$(echo "$POOL_STATE" | jq -r ".$KEY.futurePoolParams")
+    POOL_PARAMS=$(echo "$POOL_STATE" | jq -r ".$KEY.poolParams")
+    POOL_RET=$(echo "$POOL_STATE" | jq -r ".$KEY.retiring")
+    
     if [[ "$FUTURE_POOL_PARAMS" != "null" ]] || ( [[ "$POOL_PARAMS" != "null" ]] && [[ "$POOL_RET" == "null" ]] ); then
         echo -n "POOL IS ALREADY REGISTERED..."
         echo "renewing pool cert;"
@@ -251,7 +256,7 @@ function reg-pool-cert {
             $CARDANO_POOL_DIR/pool-registration.cert \
             $CARDANO_POOL_DIR/delegation.cert
 
-        echo "Done!"
+        echo "Done!"        
         rm $CARDANO_KEYS_DIR/payment/stake.vkey 
         rm $CARDANO_POOL_DIR/delegation.cert
     fi
@@ -259,14 +264,15 @@ function reg-pool-cert {
     sign-tx  "tx" $CARDANO_KEYS_DIR/payment/payment.skey $CARDANO_KEYS_DIR/payment/stake.skey $COLD_KEYS/cold.skey 
     send-tx  "tx"
 
+    echo -e "\033[43m\033[30mPlease wait until the transaction is confirmed on the blockchain to check if the pool has been registered.\033[0m"
+
     for FILE in $(find $CARDANO_POOL_DIR -type f); do   
-        chmod 0600 $FILE  
+        chmod 0660 $FILE  
     done 
 
     for FILE in $(find $CARDANO_KEYS_DIR -type f); do   
-        chmod 0600 $FILE  
-    done 
-
+        chmod 0660 $FILE  
+    done
 }
 
 function get-kes-period-info {

@@ -2,6 +2,7 @@
 
 source "$(dirname "$0")/scripts/common-helpers.sh"
 source "$(dirname "$0")/scripts/download-tools.sh"
+source "$(dirname "$0")/scripts/software-tools.sh"
 source "$(dirname "$0")/scripts/tx-tools.sh"
 
 for cmd in jq tar wget awk nano; do
@@ -84,6 +85,8 @@ mkdir -p $CARDANO_CONFIG_DIR
 mkdir -p $CARDANO_POOL_DIR
 mkdir -p $CARDANO_KEYS_DIR
 
+
+prepare_software "cardano-node" "issues" 
 
 if test -f $CARDANO_CONFIG_DIR/shelley-genesis.json; then
     if [ "$NETWORK_NAME" == "mainnet" ]; then

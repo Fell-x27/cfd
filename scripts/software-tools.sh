@@ -138,6 +138,7 @@ function check_and_compare_json() {
 
 function prepare_software {
     local redirect_output
+    
 
     if [ "$2" == "silent" ]; then
         redirect_output=">/dev/null 2>&1"
@@ -145,7 +146,7 @@ function prepare_software {
         redirect_output=""
     fi
 
-    if eval software_deploy "$1" $redirect_output && eval software_config "$1" $redirect_output; then
+    if eval software_deploy "$1" "$2" $redirect_output && eval software_config "$1" "$2" $redirect_output; then
         echo ""
         return 0
     else
@@ -154,8 +155,7 @@ function prepare_software {
     fi
 }
 
-
-function software_deploy(){
+function is-installed {
     local SF_NAME=$1
     local SF_GLOBAL_META=$(from-config ".global.software.\"${SF_NAME}\"")
     local SF_LOCAL_META=$(from-config ".networks.\"${NETWORK_NAME}\".\"${SF_NAME}\"")    
@@ -175,11 +175,43 @@ function software_deploy(){
         local SUBPATH=$(echo $SF_GLOBAL_META | jq -r '.path')
         SUBPATH=$(replace-placeholders "$SUBPATH" "$DESIRED_SF_VERSION" "$NETWORK_NAME")
         
+    fi
+    
+}
+
+
+function software_deploy(){
+    local SF_NAME=$1
+    local VERBOSITY=${2:-"all"}
+    local SF_GLOBAL_META=$(from-config ".global.software.\"${SF_NAME}\"")
+    local SF_LOCAL_META=$(from-config ".networks.\"${NETWORK_NAME}\".\"${SF_NAME}\"")    
+    
+    if ! [ "$SF_META" == null ]; then
+        local DESIRED_SF_VERSION=$(echo $SF_LOCAL_META | jq -r ".version")
+        
+        local SF_GLOBAL_DIR=$CARDANO_SOFTWARE_DIR/$SF_NAME
+        local SF_LOCAL_DIR=$SF_GLOBAL_DIR/$DESIRED_SF_VERSION
+        local SF_BIN_DIR=$SF_LOCAL_DIR/bin
+        
+        if [ "$VERBOSITY" != "silent" ] && [ "$VERBOSITY" != "issues" ]; then
+            echo ""
+            echo "------------------------"
+            echo "$SF_NAME ver: $DESIRED_SF_VERSION is required"
+        fi 
+
+            
+        local SUBPATH=$(echo $SF_GLOBAL_META | jq -r '.path')
+        SUBPATH=$(replace-placeholders "$SUBPATH" "$DESIRED_SF_VERSION" "$NETWORK_NAME")
+        
         if ! test -f "$SF_BIN_DIR/$SUBPATH/$SF_NAME"; then            
             
-            echo "Installing..."   
-            echo ""       
-
+            if [ "$VERBOSITY" != "silent" ]; then
+                echo ""
+                echo "$SF_NAME ver: $DESIRED_SF_VERSION  not found"   
+                echo "Installing..."   
+                echo ""
+            fi 
+            
             local TARGZ_NAME=$(echo $SF_GLOBAL_META | jq -r '."name-format"')
             TARGZ_NAME=$(replace-placeholders "$TARGZ_NAME" "$DESIRED_SF_VERSION" "$NETWORK_NAME")
 
@@ -191,24 +223,30 @@ function software_deploy(){
             download_and_extract_targz ${DOWNLOAD_LINK}${TARGZ_NAME} $SF_BIN_DIR
             
             
-            
-            echo ""
-            echo "Done!"           
-            echo "------------------------"             
-        else
-            echo "$SF_NAME ver: $DESIRED_SF_VERSION is already installed;"
-            echo "------------------------"   
-            echo "";         
+            if [ "$VERBOSITY" != "silent" ]; then
+                echo ""
+                echo "Done!"           
+                echo "------------------------"    
+            fi         
+        else   
+            if [ "$VERBOSITY" != "silent" ] && [ "$VERBOSITY" != "issues" ]; then 
+                echo "$SF_NAME ver: $DESIRED_SF_VERSION is already installed;"
+                echo "------------------------"   
+                echo "";                     
+            fi
         fi
         
         local DESIRED_FILES=$(echo $SF_GLOBAL_META | jq -r '.["desired-files"] | .[]')
         
+        echo "Validating $SF_NAME installation..."
+        spin &
+        spinner_pid=$!
+
         for FILE in $(find $SF_BIN_DIR -type f); do 
             local BASENAME=$(basename $FILE)
             local OLD_LINK=$(readlink $CARDANO_BINARIES_DIR/$BASENAME)
-            local OLD_VERSION=$(get-version-from-path "$OLD_LINK" "$SF_GLOBAL_DIR")
-          
-            if [ -z $OLD_VERSION ] || [ $OLD_VERSION != $DESIRED_SF_VERSION ]; then            
+            local OLD_VERSION=$(get-version-from-path "$OLD_LINK" "$SF_GLOBAL_DIR")                  
+            if [ -z $OLD_VERSION ] || [ $OLD_VERSION != $DESIRED_SF_VERSION ]; then                                        
                 if [ $(file -rb --mime-type $FILE) == "text/x-shellscript" ] || [ $(file -rb --mime-type $FILE) == "application/x-executable" ]; then
                     chmod +x $FILE
                 fi
@@ -216,10 +254,17 @@ function software_deploy(){
                     ln -fns $FILE $CARDANO_BINARIES_DIR/$BASENAME                    
                 fi
             fi
-        done       
+        done   
+        
+        kill "$spinner_pid" >/dev/null 2>&1
+        echo -ne "OK" "\r"
+        
     else
-        echo "$SF_NAME is not required"
+        if [ "$VERBOSITY" != "silent" ] && [ "$VERBOSITY" != "issues" ]; then
+            echo "$SF_NAME is not required"
+        fi
     fi
+            
     return 0
 }
 
@@ -232,9 +277,15 @@ function recursive-config-linking {
     
 
     for SUBJECT in "$CONF_DIR"/*; do 
-        local BASENAME=$(basename "$SUBJECT")
         
+    
+        local BASENAME=$(basename "$SUBJECT")                
         local LINK_CONF_SUBJECT=$LINKS_DIR/$BASENAME
+        
+        
+        if [ "$BASENAME" == "*" ]; then
+            return 0
+        fi
         
         local OLD_USER_CONF_SUBJECT=$(readlink "$LINK_CONF_SUBJECT")        
         local OLD_DEF_CONF_SUBJECT=$(echo "$OLD_USER_CONF_SUBJECT" | sed "s|user_configs|default_configs|")        
@@ -269,6 +320,7 @@ function recursive-config-linking {
 
 function software_config() {
     local SF_NAME=$1
+    local VERBOSITY=${2:-"all"}
     local SF_GLOBAL_META=$(from-config ".global.software.\"${SF_NAME}\"")
     local SF_LOCAL_META=$(from-config ".networks.\"${NETWORK_NAME}\".\"${SF_NAME}\"")
     
@@ -283,28 +335,39 @@ function software_config() {
         mkdir -p $SF_CONF_DIR_DEF
         mkdir -p $SF_CONF_DIR_USER
     
-        echo ""
-        echo "------------------------"
-        echo "$SF_NAME version: $DESIRED_SF_VERSION configuration checking..." 
+        if [ "$VERBOSITY" != "silent" ] && [ "$VERBOSITY" != "issues" ]; then
+            echo ""
+            echo "------------------------"
+            echo "$SF_NAME version: $DESIRED_SF_VERSION configuration checking..." 
+        fi
         
         local REQUIRED_SOFTWARE_LIST=$(echo $SF_GLOBAL_META | jq -r '.["required-software"] | .[]')
         for REQ_SF_NAME in $REQUIRED_SOFTWARE_LIST; do
-            echo -n "      \"$REQ_SF_NAME\" software is required..."
-            if [ -z "$(which $REQ_SF_NAME)" ]; then
-               echo -e "\e[1;41m$REQ_SF_NAME is not installed! You have to fix it;\e[1;m"
-               return 1
-            else
-                echo "Ok!"
-            fi 
+            if [ "$VERBOSITY" != "silent" ]; then
+                echo -n "      \"$REQ_SF_NAME\" software is required..."
+                if [ -z "$(which $REQ_SF_NAME)" ]; then
+                   echo -e "\e[1;41m$REQ_SF_NAME is not installed! You have to fix it;\e[1;m"
+                   return 1
+                else
+                    echo "Ok!"
+                fi 
+            fi
         done
 
         local REQUIRED_FILES_LIST=$(echo $SF_GLOBAL_META | jq -r '.["required-files"] | .[]')
         for REQ_FILE_NAME in $REQUIRED_FILES_LIST; do
-            echo -n "      \"$REQ_FILE_NAME\" file is required..."
+            if [ "$VERBOSITY" != "silent" ] && [ "$VERBOSITY" != "issues" ]; then
+                echo -n "      \"$REQ_FILE_NAME\" file is required..."
+            fi
             
             if ! test -f "$SF_CONF_DIR_DEF/$REQ_FILE_NAME" && ! test -d "$SF_CONF_DIR_DEF/$REQ_FILE_NAME" ; then
-                echo "but not found...trying to fix..."
-                echo ""                
+                
+                if [ "$VERBOSITY" != "silent" ] && [ "$VERBOSITY" != "issues" ]; then
+                    echo "      \"$REQ_FILE_NAME\" file not found...trying to fix..."
+                    echo ""   
+                fi
+                
+                             
 
                 local FILE_RULE=$(echo $SF_LOCAL_META | jq -r ".\"required-files\".\"${REQ_FILE_NAME}\"")    
 
@@ -339,11 +402,15 @@ function software_config() {
                     ;;
                 esac
             else
-                echo "Done!"
+                if [ "$VERBOSITY" != "silent" ] && [ "$VERBOSITY" != "issues" ]; then
+                    echo "Done!"
+                fi
             fi
         done
     else
-        echo "$SF_NAME is not required"        
+        if [ "$VERBOSITY" != "silent" ] && [ "$VERBOSITY" != "issues" ]; then
+            echo "$SF_NAME is not required"
+        fi        
     fi
 
     recursive-config-linking $SF_CONF_DIR_DEF $SF_CONF_DIR_USER $DESIRED_SF_VERSION $SF_GLOBAL_DIR $CARDANO_CONFIG_DIR

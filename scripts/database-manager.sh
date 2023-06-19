@@ -1,6 +1,9 @@
 #!/bin/bash
 
 function database-manager {
+
+    prepare_software "cardano-db-sync" "issues"
+
     COMMANDS=("check" "createdb" "dropdb" "list-views" "recreatedb" "create-user" "create-migration" "run-migrations" "dump-schema" "create-snapshot" "restore-snapshot")
 
     if [[ ! -z "$1" && " ${COMMANDS[*]} " =~ " $1 " ]]; then

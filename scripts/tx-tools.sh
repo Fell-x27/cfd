@@ -1,29 +1,5 @@
 #!/bin/bash
 
-function get-protocol {
-    CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH \
-    $CARDANO_BINARIES_DIR/cardano-cli query protocol-parameters "${MAGIC[@]}" --out-file $CARDANO_CONFIG_DIR/protocol.json
-}
-
-function get-utxo-json {
-    CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH \
-    $CARDANO_BINARIES_DIR/cardano-cli query utxo \
-        --address $(cat $CARDANO_KEYS_DIR/payment/base.addr) \
-        --out-file=/dev/stdout \
-        "${MAGIC[@]}"
-}
-
-function get-utxo-pretty {
-    echo ""
-    cat $CARDANO_KEYS_DIR/payment/base.addr
-    echo ""
-    echo ""
-    CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH \
-    $CARDANO_BINARIES_DIR/cardano-cli query utxo \
-    --address $(cat $CARDANO_KEYS_DIR/payment/base.addr) \
-    "${MAGIC[@]}"
-}
-
 function build-tx {
     local TX_NAME=$1
     local DEPOSIT=${2:-0}

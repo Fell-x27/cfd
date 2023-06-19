@@ -1,8 +1,49 @@
 #!/bin/bash
 
+spin() {
+  local -r chars="/-\|"
+
+  while :; do
+    for (( i=0; i<${#chars}; i++ )); do
+      sleep 0.1
+      echo -ne "${chars:$i:1}" "\r"
+    done
+  done
+}
+
+function get-protocol {
+    CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH \
+    $CARDANO_BINARIES_DIR/cardano-cli query protocol-parameters "${MAGIC[@]}" --out-file $CARDANO_CONFIG_DIR/protocol.json
+}
+
+function get-utxo-json {
+    CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH \
+    $CARDANO_BINARIES_DIR/cardano-cli query utxo \
+        --address $(cat $CARDANO_KEYS_DIR/payment/base.addr) \
+        --out-file=/dev/stdout \
+        "${MAGIC[@]}"
+}
+
+function get-utxo-pretty {
+    echo ""
+    cat $CARDANO_KEYS_DIR/payment/base.addr
+    echo ""
+    echo ""
+    CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH \
+    $CARDANO_BINARIES_DIR/cardano-cli query utxo \
+    --address $(cat $CARDANO_KEYS_DIR/payment/base.addr) \
+    "${MAGIC[@]}"
+}
+
 function from-config {
     local PARAM_PATH=$1
     echo $(jq -r "$PARAM_PATH" "$CONFIG_FILE")   
+}
+
+function check-node-sync {
+    if [ ! -f "$CARDANO_SOCKET_PATH" ]; then
+        echo ""
+    fi
 }
 
 function get-version-from-path {
@@ -135,3 +176,15 @@ function check-deployment-path {
       exit 1
     fi
 }
+
+function run-check-sync {
+    local VERBOSITY=${1:-"all"}
+    local OUTPUT_MODE=""
+    
+    if [ $VERBOSITY == "silent" ];then
+        OUTPUT_MODE="--out-file=/dev/null"
+    fi
+    
+    CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH $CARDANO_BINARIES_DIR/cardano-cli query tip $OUTPUT_MODE ${MAGIC[@]}
+}
+
