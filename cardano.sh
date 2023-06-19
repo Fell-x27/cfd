@@ -3,11 +3,6 @@
 # Including the startup script
 source "$(dirname "$0")/scripts/startup.sh"
 
-if [ ! -f "../$0" ]; then
-    ln -fns $(readlink -f "$0") "../$0"
-    chmod +x "../$0"
-fi
-
 echo ""
 echo "***************************************"
 

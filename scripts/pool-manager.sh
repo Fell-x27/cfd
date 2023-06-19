@@ -3,9 +3,22 @@
 source "$(dirname "$0")/scripts/pool-tools.sh"
 
 function pool-manager {
-
+    wrap-cli-command run-check-sync "silent"
+    SYNC_STATE=$(run-check-sync)    
+    SYNC_STATE=$(echo "$SYNC_STATE" | jq -r '.syncProgress')
+    
+    
+    if (( $(echo "$SYNC_STATE < 100" | bc -l) )); then
+        echo -e "\033[43m\033[30mWARNING\033[0m: The node is not synced yet, please wait."
+        echo "Current sync level: $SYNC_STATE%"
+        exit
+    fi
+    
+    echo "---"
+    prepare_software "cardano-address" "issues"
     echo ""
     echo "***************************************"
+
 
     AVAILABLE_ACTIONS=("init-pool" "certificate-update" "certificate-submit" "kes-update")
 
