@@ -110,7 +110,7 @@ If the software requires new additional files (for example, configs), add the fo
 The instructions for obtaining a file can be of different types:
 * `"d url"` - download a file via a direct link in the url.
 >For example: "d https://book.world.dev.cardano.org/environments/%/db-sync-config.json"
-* `"dtgz url path strip"` - download an archive via the url link, extract the content from path, save it, reducing the path to the content to the strip level.
+* `"dtgz url path strip"` - download an archive via the `url` link, extract the content from `path`, save it, reducing the path to the content to the `strip` level.
 >For example: "dtgz https://github.com/input-output-hk/cardano-db-sync/archive/refs/tags/#.tar.gz cardano-db-sync-#/schema/ 1"
 * `"p text chmod"` - create a file with the text content and assign it chmod access rights.
 >For example: "p /var/run/postgresql:5432:%:: 0600"
