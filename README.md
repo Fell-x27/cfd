@@ -20,7 +20,7 @@ Then follow the instructions :)
 
 That's enough to get acquainted with Cardano!
 
-CDF will help you to:
+CFD will help you to:
 1) Automatically install, configure and run Cardano software;
 2) Monitor the synchronization of your node;
 3) Automatically ensure the connectivity of different components;
@@ -72,7 +72,7 @@ Nothing, these folders only contain symlinks to real files, CFD will restore the
 Currently, like most console solutions, they are not. You must guard them carefully.
 
 
-### **What is the `cdf/software` folder for?**
+### **What is the `cfd/software` folder for?**
 This folder contains the software and current configuration files for different networks, please do not touch this folder without an extreme need, it is 100% service;
 
 ### What to do if the software configuration structure has changed and I already had custom parameters written?
@@ -114,6 +114,8 @@ The instructions for obtaining a file can be of different types:
 >For example: "dtgz https://github.com/input-output-hk/cardano-db-sync/archive/refs/tags/#.tar.gz cardano-db-sync-#/schema/ 1"
 * `"p text chmod"` - create a file with the text content and assign it chmod access rights.
 >For example: "p /var/run/postgresql:5432:%:: 0600"
+
+Please note - the instructions contain the symbols `%` and `#`, these are placeholders for the `network name` and `software version` respectively. CFD will automatically insert the necessary data, you don't need to specify specific values there.
 
 ### Can I add additional networks?
 Yes, simply add them to conf.json, following the examples already there.

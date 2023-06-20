@@ -4,7 +4,11 @@
     "ip": "",
     "software": {
       "cardano-node": {
-        "download-link": "https://s3.ap-southeast-1.amazonaws.com/update-cardano-mainnet.iohk.io/cardano-node-releases/",
+        "download-links": [
+            "https://s3.ap-southeast-1.amazonaws.com/update-cardano-mainnet.iohk.io/cardano-node-releases/",
+            "https://github.com/input-output-hk/cardano-node/releases/download/#/",
+            "https://update-cardano-mainnet.iohk.io/cardano-node-releases/"
+        ],
         "name-format": "cardano-node-#-linux.tar.gz",
         "path": "",
         "desired-files": [
@@ -22,7 +26,9 @@
         "required-software": []
       },
       "cardano-db-sync": {
-        "download-link": "https://update-cardano-mainnet.iohk.io/cardano-db-sync/",
+        "download-links": [
+            "https://update-cardano-mainnet.iohk.io/cardano-db-sync/"
+        ],
         "name-format": "cardano-db-sync-#-linux.tar.gz",
         "path": "",
         "desired-files": [
@@ -40,7 +46,9 @@
         ]
       },
       "cardano-address": {
-        "download-link": "https://github.com/input-output-hk/cardano-addresses/releases/download/#/",
+        "download-links": [
+            "https://github.com/input-output-hk/cardano-addresses/releases/download/#/"
+        ],
         "name-format": "cardano-addresses-#-linux64.tar.gz",
         "path": "bin/",
         "desired-files": [
@@ -50,7 +58,9 @@
         "required-software": []
       },
       "cardano-wallet": {
-        "download-link": "https://github.com/input-output-hk/cardano-wallet/releases/download/#/",
+        "download-links": [
+            "https://github.com/input-output-hk/cardano-wallet/releases/download/#/"
+        ],
         "name-format": "cardano-wallet-#-linux64.tar.gz",
         "path": "cardano-wallet-#-linux64/",
         "desired-files": [
@@ -97,7 +107,7 @@
     },
     "preprod": {
       "cardano-node": {
-        "version": "8.0.0",
+        "version": "8.1.1",
         "node-port": "5002",
         "submit-api-port": "8998",
         "required-files": {
@@ -130,7 +140,7 @@
     },
     "preview": {
       "cardano-node": {
-        "version": "8.0.0",
+        "version": "8.1.1",
         "node-port": "5003",
         "submit-api-port": "8997",
         "required-files": {

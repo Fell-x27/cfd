@@ -212,15 +212,33 @@ function software_deploy(){
                 echo ""
             fi 
             
+            mkdir -p $SF_BIN_DIR  
+            
             local TARGZ_NAME=$(echo $SF_GLOBAL_META | jq -r '."name-format"')
             TARGZ_NAME=$(replace-placeholders "$TARGZ_NAME" "$DESIRED_SF_VERSION" "$NETWORK_NAME")
 
-            local DOWNLOAD_LINK=$(echo $SF_GLOBAL_META | jq -r '."download-link"')
-            DOWNLOAD_LINK=$(replace-placeholders "$DOWNLOAD_LINK" "$DESIRED_SF_VERSION" "$NETWORK_NAME")            
-              
-            mkdir -p $SF_BIN_DIR
+            local DOWNLOAD_LINKS_RAW=$(echo $SF_GLOBAL_META | jq -r '."download-links"[]')
+                      
 
-            download_and_extract_targz ${DOWNLOAD_LINK}${TARGZ_NAME} $SF_BIN_DIR
+            for LINK in $DOWNLOAD_LINKS_RAW; do
+                DOWNLOAD_LINK=$(replace-placeholders "$LINK" "$DESIRED_SF_VERSION" "$NETWORK_NAME")$TARGZ_NAME
+                if curl --output /dev/null --silent --head --fail "$DOWNLOAD_LINK"; then
+                    break
+                fi
+            done
+
+            download_and_extract_targz $DOWNLOAD_LINK $SF_BIN_DIR
+
+
+            for LINK in $DOWNLOAD_LINKS; do
+                if curl --output /dev/null --silent --head --fail "$LINK$TARGZ_NAME"; then
+                    DOWNLOAD_LINK=$LINK
+                    break
+                fi
+            done
+
+download_and_extract_targz ${DOWNLOAD_LINK}${TARGZ_NAME} $SF_BIN_DIR
+
             
             
             if [ "$VERBOSITY" != "silent" ]; then
