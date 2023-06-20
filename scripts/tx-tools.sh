@@ -27,8 +27,8 @@ function build-tx {
 
     
     if [ ${CHOSEN_UTXO[1]} -lt $MIN_UTXO ]; then
-        echo -e "\e[30;43mWARNING!\e[0m Can't process transaction! The balance of the wallet is insufficient. Please, fund it."
-        echo "There should be at least one UTxO with approximately $MIN_UTXO lovelaces and no assets:"
+        echo -e "${BOLD}${BLACK_ON_YELLOW} WARNING! ${NORMAL} Can't process transaction! The balance of the wallet is insufficient. Please, fund it."
+        echo -e "There should be at least one UTxO with approximately ${BLACK_ON_LIGHT_GRAY} $(expr $MIN_UTXO / 1000000) ADA ${NORMAL} and no assets:"
         wrap-cli-command get-utxo-pretty
         exit 0
     fi   

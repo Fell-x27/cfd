@@ -9,7 +9,7 @@ function pool-manager {
     
     
     if (( $(echo "$SYNC_STATE < 100" | bc -l) )); then
-        echo -e "\033[43m\033[30mWARNING\033[0m: The node is not synced yet, please wait."
+        echo -e "${BOLD}${BLACK_ON_YELLOW}WARNING${NORMAL}: The node is not synced yet, please wait."
         echo "Current sync level: $SYNC_STATE%"
         exit
     fi
@@ -55,9 +55,26 @@ function pool-manager {
 }
 
 function init-pool {
+    local POOL_REG_COST=$(jq -r ".stakePoolDeposit" $CARDANO_CONFIG_DIR/protocol.json)
+    local STAKE_REG_COST=$(jq -r ".stakeAddressDeposit" $CARDANO_CONFIG_DIR/protocol.json)
+
+    echo -e "${BOLD}${BLACK_ON_YELLOW} ATTENTION! ${NORMAL}"
+    echo -e "Registering a stake key requires a${BOLD}${BLACK_ON_LIGHT_GRAY} returnable deposit of $(expr $STAKE_REG_COST / 1000000) ADA ${NORMAL}."
+    echo -e "Registering a pool requires a${BOLD}${BLACK_ON_LIGHT_GRAY} returnable deposit of $(expr $POOL_REG_COST / 1000000) ADA ${NORMAL}."
+    echo "Subsequent updates are free of charge, except for the transaction fee."
+
+    local CONTINUE
+    read -p "Continue?(y/n): " CONTINUE
+    CONTINUE=$(echo "$CONTINUE" | tr '[:upper:]' '[:lower:]')
+
+    if [ "$CONTINUE" != "y" ] && [ "$CONTINUE" != "yes" ] ; then
+        echo "Exiting."
+        exit 1
+    fi
+
     echo ""
     echo "Step 1: register your stake key on blockchain"
-    register-stake-key
+        register-stake-key
     echo ""
     
     echo ""
