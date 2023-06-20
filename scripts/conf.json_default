@@ -4,7 +4,7 @@
     "ip": "",
     "software": {
       "cardano-node": {
-        "download-link": "https://s3.ap-southeast-1.amazonaws.com/update-cardano-mainnet.iohk.io/cardano-node-releases/",
+        "download-link": "https://github.com/input-output-hk/cardano-node/releases/download/#/",
         "name-format": "cardano-node-#-linux.tar.gz",
         "path": "",
         "desired-files": [
@@ -64,7 +64,7 @@
   "networks": {
     "mainnet": {
       "cardano-node": {
-        "version": "8.0.0",
+        "version": "8.1.1",
         "node-port": "5001",
         "submit-api-port": "8999",
         "required-files": {
@@ -97,7 +97,7 @@
     },
     "preprod": {
       "cardano-node": {
-        "version": "8.0.0",
+        "version": "8.1.1",
         "node-port": "5002",
         "submit-api-port": "8998",
         "required-files": {
@@ -130,7 +130,7 @@
     },
     "preview": {
       "cardano-node": {
-        "version": "8.0.0",
+        "version": "8.1.1",
         "node-port": "5003",
         "submit-api-port": "8997",
         "required-files": {
