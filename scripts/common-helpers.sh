@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# ANSI escape codes
+BOLD="\033[1m"
+NORMAL="\033[0m"
+
+BLACK_ON_YELLOW="\033[30;43m"
+BLACK_ON_LIGHT_GRAY="\033[30;47m"
+WHITE_ON_RED="\033[37;41m"
+
+
 spin() {
   local -r chars="/-\|"
 
@@ -17,22 +26,30 @@ function get-protocol {
 }
 
 function get-utxo-json {
-    CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH \
-    $CARDANO_BINARIES_DIR/cardano-cli query utxo \
-        --address $(cat $CARDANO_KEYS_DIR/payment/base.addr) \
-        --out-file=/dev/stdout \
-        "${MAGIC[@]}"
+    if [ -f "$CARDANO_KEYS_DIR/payment/base.addr" ]; then
+        CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH \
+        $CARDANO_BINARIES_DIR/cardano-cli query utxo \
+            --address $(cat $CARDANO_KEYS_DIR/payment/base.addr) \
+            --out-file=/dev/stdout \
+            "${MAGIC[@]}"
+    else
+        echo -e "${BOLD}${WHITE_ON_RED}ERROR${NORMAL}: you have to create or restore wallet before!"
+    fi
 }
 
 function get-utxo-pretty {
-    echo ""
-    cat $CARDANO_KEYS_DIR/payment/base.addr
-    echo ""
-    echo ""
-    CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH \
-    $CARDANO_BINARIES_DIR/cardano-cli query utxo \
-    --address $(cat $CARDANO_KEYS_DIR/payment/base.addr) \
-    "${MAGIC[@]}"
+    if [ -f "$CARDANO_KEYS_DIR/payment/base.addr" ]; then
+        echo ""
+        cat $CARDANO_KEYS_DIR/payment/base.addr
+        echo ""
+        echo ""
+        CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH \
+        $CARDANO_BINARIES_DIR/cardano-cli query utxo \
+        --address $(cat $CARDANO_KEYS_DIR/payment/base.addr) \
+        "${MAGIC[@]}"
+    else
+        echo -e "${BOLD}${WHITE_ON_RED}ERROR${NORMAL}: you have to create or restore wallet before!"
+    fi
 }
 
 function from-config {
@@ -65,7 +82,7 @@ function get-version-from-path {
 
 function rewriting-prompt {    
     if [[ -f "$1" ]]; then
-        printf "\e[1;41mWarning!\e[0m $2 Are you sure? (Y/N) "
+        printf "${BOLD}${WHITE_ON_RED}Warning!${NORMAL} $2 Are you sure? (Y/N) "
         read answer
         case ${answer^^} in
             Y|YES)
@@ -186,5 +203,13 @@ function run-check-sync {
     fi
     
     CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH $CARDANO_BINARIES_DIR/cardano-cli query tip $OUTPUT_MODE ${MAGIC[@]}
+}
+
+function get-kes-period-info {
+    CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH \
+        $CARDANO_BINARIES_DIR/cardano-cli query kes-period-info \
+        --op-cert-file $KES_KEYS/node.cert \
+        --out-file=/dev/stderr \
+        "${MAGIC[@]}" 1>/dev/null
 }
 
