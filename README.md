@@ -1,4 +1,4 @@
-# CFD - Cardano Fast Deployment toolset
+# CFD - Cardano Fast Deployment tool
 Your toolkit for quick and convenient management of your Cardano software.
 
 ❤️ Powered by *MDS* pool. ❤️
