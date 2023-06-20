@@ -115,6 +115,8 @@ The instructions for obtaining a file can be of different types:
 * `"p text chmod"` - create a file with the text content and assign it chmod access rights.
 >For example: "p /var/run/postgresql:5432:%:: 0600"
 
+Please note - the instructions contain the symbols `%` and `#`, these are placeholders for the `network name` and `software version` respectively. CFD will automatically insert the necessary data, you don't need to specify specific values there.
+
 ### Can I add additional networks?
 Yes, simply add them to conf.json, following the examples already there.
 
