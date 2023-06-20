@@ -267,11 +267,11 @@ function reg-pool-cert {
     echo -e "\033[43m\033[30mPlease wait until the transaction is confirmed on the blockchain to check if the pool has been registered.\033[0m"
 
     for FILE in $(find $CARDANO_POOL_DIR -type f); do   
-        chmod 0660 $FILE  
+        chmod 0600 $FILE  
     done 
 
     for FILE in $(find $CARDANO_KEYS_DIR -type f); do   
-        chmod 0660 $FILE  
+        chmod 0600 $FILE  
     done
 }
 
