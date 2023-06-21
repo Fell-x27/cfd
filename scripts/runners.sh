@@ -1,12 +1,12 @@
 
-declare -A runners
+declare -A RUNNERS
 
-runners["node-relay"]="run_cardano_node"
-runners["node-relay-local"]="run_cardano_node --noip"
-runners["node-block-producer"]="run_cardano_pool"
-runners["db-sync"]="run_cardano_db_sync"
-runners["submit-api"]="run_cardano_sapi"
-runners["wallet"]="run_cardano_wallet"
+RUNNERS["node-relay"]="run_cardano_node|cardano-node"
+RUNNERS["node-relay-local"]="run_cardano_node --noip|cardano-node"
+RUNNERS["node-block-producer"]="run_cardano_pool|cardano-node"
+RUNNERS["db-sync"]="run_cardano_db_sync|cardano-db-sync"
+RUNNERS["submit-api"]="run_cardano_sapi|cardano-node"
+RUNNERS["wallet"]="run_cardano_wallet|cardano-wallet"
 
 function run_cardano_node {
     if prepare_software "cardano-node"; then

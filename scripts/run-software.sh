@@ -6,44 +6,54 @@ function run-software {
     echo ""
     echo "***************************************"
 
-    keys=(${!runners[@]})
-    sorted_keys=($(for key in "${keys[@]}"; do echo "$key"; done | sort))
+    local KEYS=(${!RUNNERS[@]})
+    local SORTED_KEYS=($(for key in "${KEYS[@]}"; do echo "$key"; done | sort))
+    local RUNNER SOFTWARE INNER_ARRAY
 
     if [ -z "$1" ]; then
-        echo "Choose the action:"
-        counter=1
-        for key in "${sorted_keys[@]}"; do
-            echo "$counter: $key"
-            counter=$((counter+1))
+        echo "Choose the software to run:"
+        COUNTER=1
+        for KEY in "${SORTED_KEYS[@]}"; do
+        
+            INNER_ARRAY=(${RUNNERS[$KEY]})
+    
+            RUNNER=$(echo "${INNER_ARRAY}" | cut -d'|' -f1)
+            SOFTWARE=$(echo "${INNER_ARRAY}" | cut -d'|' -f2)
+        
+            echo "$COUNTER: $KEY ($(get-sf-version $SOFTWARE))"
+            COUNTER=$((COUNTER+1))
         done
 
-        read -p "Enter the number of the desired option: " selected_option
-        selected_option=$((selected_option-1))
+        read -p "Enter the number of the desired option: " SELECTED_OPTION
+        SELECTED_OPTION=$((SELECTED_OPTION-1))
     else
-        selected_option=-1
-        for i in "${!sorted_keys[@]}"; do
-           if [[ "${sorted_keys[$i]}" = "$1" ]]; then
-               selected_option=$i
+        SELECTED_OPTION=-1
+        for i in "${!SORTED_KEYS[@]}"; do
+           if [[ "${SORTED_KEYS[$i]}" = "$1" ]]; then
+               SELECTED_OPTION=$i
            fi
         done
-        if [ $selected_option -eq -1 ]; then
+        if [ $SELECTED_OPTION -eq -1 ]; then
             if [ -z "$1" ]; then
-                echo "No action selected. Exiting."
+                echo "No software selected. Exiting."
             else
-                echo "Unknown action: $1. Exiting."
+                echo "Unknown software: $1. Exiting."
             fi
             exit 1
         fi
     fi
 
-    selected_key=${sorted_keys[$selected_option]}
+    SELECTED_KEY=${SORTED_KEYS[$SELECTED_OPTION]}
 
-    if [ -z "$selected_key" ]; then
-        echo "No action selected. Exiting."
+    if [ -z "$SELECTED_KEY" ]; then
+        echo "No software selected. Exiting."
         exit 1
     fi
     
-    echo "Selected option: $selected_key"
-    ${runners[$selected_key]}
+    echo "Selected option: $SELECTED_KEY"
+    
+    INNER_ARRAY=(${RUNNERS[$SELECTED_KEY]})
+    RUNNER=$(echo "${INNER_ARRAY}" | cut -d'|' -f1)
+    ${RUNNER}
 }
 
