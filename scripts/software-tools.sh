@@ -158,7 +158,7 @@ function prepare_software {
 function is-installed {
     local SF_NAME=$1
     local SF_GLOBAL_META=$(from-config ".global.software.\"${SF_NAME}\"")
-    local SF_LOCAL_META=$(from-config ".networks.\"${NETWORK_NAME}\".\"${SF_NAME}\"")    
+    local SF_LOCAL_META=$(from-config ".networks.\"${NETWORK_NAME}\".software.\"${SF_NAME}\"")    
     
     if ! [ "$SF_META" == null ]; then
         local DESIRED_SF_VERSION=$(get-sf-version $SF_NAME)
@@ -184,7 +184,7 @@ function software_deploy(){
     local SF_NAME=$1
     local VERBOSITY=${2:-"all"}
     local SF_GLOBAL_META=$(from-config ".global.software.\"${SF_NAME}\"")
-    local SF_LOCAL_META=$(from-config ".networks.\"${NETWORK_NAME}\".\"${SF_NAME}\"")    
+    local SF_LOCAL_META=$(from-config ".networks.\"${NETWORK_NAME}\".software.\"${SF_NAME}\"")    
     
     if ! [ "$SF_LOCAL_META" == null ]; then
         local DESIRED_SF_VERSION=$(get-sf-version $SF_NAME)
@@ -329,7 +329,7 @@ function software_config() {
     local SF_NAME=$1
     local VERBOSITY=${2:-"all"}
     local SF_GLOBAL_META=$(from-config ".global.software.\"${SF_NAME}\"")
-    local SF_LOCAL_META=$(from-config ".networks.\"${NETWORK_NAME}\".\"${SF_NAME}\"")
+    local SF_LOCAL_META=$(from-config ".networks.\"${NETWORK_NAME}\".software.\"${SF_NAME}\"")
     
     if ! [ "$SF_LOCAL_META" == null ]; then
         local DESIRED_SF_VERSION=$(get-sf-version $SF_NAME)

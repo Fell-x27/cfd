@@ -228,7 +228,7 @@ function get-kes-period-info {
 function get-sf-version {
     local SF_NAME="$1"
     local SF_GLOBAL_META=$(from-config ".global.software.\"${SF_NAME}\"")
-    local SF_LOCAL_META=$(from-config ".networks.\"${NETWORK_NAME}\".\"${SF_NAME}\"")    
+    local SF_LOCAL_META=$(from-config ".networks.\"${NETWORK_NAME}\".software.\"${SF_NAME}\"")    
     
     if ! [ "$SF_LOCAL_META" == null ]; then
         local DESIRED_SF_VERSION=$(echo $SF_LOCAL_META | jq -r ".version")
@@ -237,5 +237,42 @@ function get-sf-version {
         echo -e "${BOLD}${WHITE_ON_RED} ERROR ${NORMAL}: unknown software - $SF_NAME"
     fi
     
+}
+
+function validate-node-sync {
+    local LIMIT=${1:-"100"}
+    wrap-cli-command run-check-sync "silent"
+    SYNC_STATE=$(run-check-sync)    
+    SYNC_STATE=$(echo "$SYNC_STATE" | jq -r '.syncProgress')
+    
+    
+    if (( $(echo "$SYNC_STATE < $LIMIT" | bc -l) )); then
+        echo -e "${BOLD}${BLACK_ON_YELLOW}WARNING${NORMAL}: The node is not synced yet, please wait."
+        echo "Current sync level: $SYNC_STATE%"
+        exit
+    fi
+}
+
+function are-you-sure-dialog {
+    read -p "Are you sure? (y/N) " -r
+    if [[ ! $REPLY =~ ^[Yy](es)?$ ]]
+    then
+        return 1
+    fi
+    return 0
+}
+
+function get-current-slot {
+    CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH $CARDANO_BINARIES_DIR/cardano-cli \
+     query \
+     tip \
+     "${MAGIC[@]}" | jq .slot
+}
+
+function get-current-epoch {
+    CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH $CARDANO_BINARIES_DIR/cardano-cli \
+     query \
+     tip \
+     "${MAGIC[@]}" | jq .epoch
 }
 
