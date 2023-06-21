@@ -226,16 +226,15 @@ function get-kes-period-info {
 }
 
 function get-sf-version {
-    local SF_NAME=$1
+    local SF_NAME="$1"
     local SF_GLOBAL_META=$(from-config ".global.software.\"${SF_NAME}\"")
     local SF_LOCAL_META=$(from-config ".networks.\"${NETWORK_NAME}\".\"${SF_NAME}\"")    
     
-    if ! [ "$SF_META" == null ]; then
+    if ! [ "$SF_LOCAL_META" == null ]; then
         local DESIRED_SF_VERSION=$(echo $SF_LOCAL_META | jq -r ".version")
         echo $DESIRED_SF_VERSION
     else
-        echo -e "${BOLD}${WHITE_ON_RED}  ${NORMAL}"
-        exit 1
+        echo -e "${BOLD}${WHITE_ON_RED} ERROR ${NORMAL}: unknown software - $SF_NAME"
     fi
     
 }

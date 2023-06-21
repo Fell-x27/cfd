@@ -161,7 +161,7 @@ function is-installed {
     local SF_LOCAL_META=$(from-config ".networks.\"${NETWORK_NAME}\".\"${SF_NAME}\"")    
     
     if ! [ "$SF_META" == null ]; then
-        local DESIRED_SF_VERSION=$(echo $SF_LOCAL_META | jq -r ".version")
+        local DESIRED_SF_VERSION=$(get-sf-version $SF_NAME)
         
         local SF_GLOBAL_DIR=$CARDANO_SOFTWARE_DIR/$SF_NAME
         local SF_LOCAL_DIR=$SF_GLOBAL_DIR/$DESIRED_SF_VERSION
@@ -186,8 +186,8 @@ function software_deploy(){
     local SF_GLOBAL_META=$(from-config ".global.software.\"${SF_NAME}\"")
     local SF_LOCAL_META=$(from-config ".networks.\"${NETWORK_NAME}\".\"${SF_NAME}\"")    
     
-    if ! [ "$SF_META" == null ]; then
-        local DESIRED_SF_VERSION=$(echo $SF_LOCAL_META | jq -r ".version")
+    if ! [ "$SF_LOCAL_META" == null ]; then
+        local DESIRED_SF_VERSION=$(get-sf-version $SF_NAME)
         
         local SF_GLOBAL_DIR=$CARDANO_SOFTWARE_DIR/$SF_NAME
         local SF_LOCAL_DIR=$SF_GLOBAL_DIR/$DESIRED_SF_VERSION
@@ -332,7 +332,7 @@ function software_config() {
     local SF_LOCAL_META=$(from-config ".networks.\"${NETWORK_NAME}\".\"${SF_NAME}\"")
     
     if ! [ "$SF_LOCAL_META" == null ]; then
-        local DESIRED_SF_VERSION=$(echo $SF_LOCAL_META | jq -r ".version")
+        local DESIRED_SF_VERSION=$(get-sf-version $SF_NAME)
     
         local SF_GLOBAL_DIR=$CARDANO_SOFTWARE_DIR/$SF_NAME
         local SF_LOCAL_DIR=$SF_GLOBAL_DIR/$DESIRED_SF_VERSION
