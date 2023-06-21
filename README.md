@@ -148,7 +148,7 @@ https://github.com/Fell-x27/cfd/assets/18358207/8e5e39c7-6263-42ba-ace9-82b9baaa
 * Support for multiple networks at the same time;
 * Convenient switching of software versions;
 * Deployment of Cardano infrastructure "in one command";
-* Compatibility with systemctl and similar systems;
+* Compatibility with systemd and similar systems;
 * No untrusted external dependencies;
 * Lightweight;
 

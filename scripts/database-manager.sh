@@ -1,7 +1,9 @@
 #!/bin/bash
 
 function database-manager {
+    local PGPASS=$CARDANO_CONFIG_DIR/pgpass
 
+    check-db-sync-state $PGPASS
     prepare_software "cardano-db-sync" "issues"
 
     COMMANDS=("check" "createdb" "dropdb" "list-views" "recreatedb" "create-user" "create-migration" "run-migrations" "dump-schema" "create-snapshot" "restore-snapshot")
@@ -37,7 +39,7 @@ function database-manager {
 
     echo "***************************************"
     echo "Selected action: ${COMMAND}"
-    PGPASSFILE=$CARDANO_CONFIG_DIR/pgpass  \
+    PGPASSFILE=$PGPASS  \
     $CARDANO_CONFIG_DIR/postgresql-setup.sh --$COMMAND $2 $3
 }
 

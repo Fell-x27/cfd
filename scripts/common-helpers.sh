@@ -20,6 +20,18 @@ spin() {
   done
 }
 
+function check-db-sync-state {
+    local PGPASS_FILE=$1
+    local PORT=$(cut -d ':' -f 2 $PGPASS_FILE)
+
+    if netstat -tuln | grep $PORT >/dev/null; then
+        echo "Port $PORT is active. PostgreSQL might be running."
+    else
+        echo -e "${BOLD}${WHITE_ON_RED} ERROR: ${NORMAL} Port $PORT is not active. PostgreSQL might not be installed or running."
+        exit 1
+    fi
+}
+
 function get-protocol {
     CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH \
     $CARDANO_BINARIES_DIR/cardano-cli query protocol-parameters "${MAGIC[@]}" --out-file $CARDANO_CONFIG_DIR/protocol.json

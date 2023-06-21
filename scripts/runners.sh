@@ -60,7 +60,7 @@ function run_cardano_pool {
 function run_cardano_db_sync {
     if prepare_software "cardano-db-sync"; then
         output=$("$(dirname "$0")/cardano.sh" $NETWORK_NAME database-manager check)                
-
+        
        
         if echo "$output" | grep -q "All good!"; then
             PGPASSFILE=$CARDANO_CONFIG_DIR/pgpass  \
