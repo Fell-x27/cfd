@@ -24,11 +24,25 @@ function run_cardano_node {
 
 
 function run_cardano_pool {
+    local KES_KEYS=$CARDANO_KEYS_DIR/kes
+    local ERRMSG="${BOLD}${WHITE_ON_RED} ERROR: ${NORMAL} the pool is not configured properly."
+
+    for KEY in node.cert kes.skey vrf.skey
+    do
+        if [ ! -e "$KES_KEYS/$KEY" ]; then
+            echo -e $ERRMSG
+            echo "$KES_KEYS/$KEY is missed!"
+            exit 1
+        fi
+    done
+
+
+
     if prepare_software "cardano-node"; then
         SERVER_IP=$(from-config ".global.ip")
         NODE_PORT=$(from-config ".networks.\"${NETWORK_NAME}\".\"cardano-node\".\"node-port\"")
 
-        KES_KEYS=$CARDANO_KEYS_DIR/kes
+        
 
         $CARDANO_BINARIES_DIR/cardano-node run \
         --config $CARDANO_CONFIG_DIR/config.json \
