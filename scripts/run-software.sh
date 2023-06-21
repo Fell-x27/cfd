@@ -15,12 +15,12 @@ function run-software {
         COUNTER=1
         for KEY in "${SORTED_KEYS[@]}"; do
         
-            INNER_ARRAY=(${RUNNERS[$KEY]})
-    
+            INNER_ARRAY="${RUNNERS[$KEY]}"            
+                
             RUNNER=$(echo "${INNER_ARRAY}" | cut -d'|' -f1)
             SOFTWARE=$(echo "${INNER_ARRAY}" | cut -d'|' -f2)
         
-            echo "$COUNTER: $KEY ($(get-sf-version $SOFTWARE))"
+            echo "$COUNTER: $KEY ($(get-sf-version ${SOFTWARE}))"
             COUNTER=$((COUNTER+1))
         done
 
