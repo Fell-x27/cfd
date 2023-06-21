@@ -1,26 +1,14 @@
 #!/bin/bash
 
-source "$(dirname "$0")/scripts/pool-tools.sh"
-
 function pool-manager {
-    wrap-cli-command run-check-sync "silent"
-    SYNC_STATE=$(run-check-sync)    
-    SYNC_STATE=$(echo "$SYNC_STATE" | jq -r '.syncProgress')
-    
-    
-    if (( $(echo "$SYNC_STATE < 100" | bc -l) )); then
-        echo -e "${BOLD}${BLACK_ON_YELLOW}WARNING${NORMAL}: The node is not synced yet, please wait."
-        echo "Current sync level: $SYNC_STATE%"
-        exit
-    fi
-    
+    validate-node-sync
     echo "---"
     prepare_software "cardano-address" "issues"
     echo ""
     echo "***************************************"
 
+    AVAILABLE_ACTIONS=("pool-setup-wizard" "stake-key-register" "stake-key-unregister" "pool-certificate-edit" "pool-certificate-submit" "pool-certificate-recall" "pool-keys-generate" "kes-keys-update")
 
-    AVAILABLE_ACTIONS=("init-pool" "certificate-update" "certificate-submit" "kes-update")
 
     if [ ! -z "$1" ] && [[ " ${AVAILABLE_ACTIONS[@]} " =~ " $1 " ]]; then
         ACTION_NAME="$1"
@@ -54,7 +42,7 @@ function pool-manager {
     $ACTION_NAME
 }
 
-function init-pool {
+function pool-setup-wizard {
     local POOL_REG_COST=$(jq -r ".stakePoolDeposit" $CARDANO_CONFIG_DIR/protocol.json)
     local STAKE_REG_COST=$(jq -r ".stakeAddressDeposit" $CARDANO_CONFIG_DIR/protocol.json)
 
@@ -73,38 +61,57 @@ function init-pool {
     fi
 
     echo ""
-    echo "Step 1: register your stake key on blockchain"
-        register-stake-key
+    echo "> Step 1: register your stake key on blockchain"
+        reg-stake-key
     echo ""
     
     echo ""
-    echo "Step 2: generate pool keys"
-    if gen-pools-keys; then
-       gen-kes-keys
-    fi
+    echo "> Step 2: generate pool keys"
+        if gen-pools-keys; then
+           gen-kes-keys
+        fi
     echo ""
     
     echo ""
-    echo "Step 3: generate pool certificate"
-    gen-pool-cert    
+    echo "> Step 3: generate pool certificate"
+        gen-pool-cert    
     echo ""
     
     echo ""
-    echo "Step 4: register pool certificate on blockchain and delegate to it"
-    reg-pool-cert
+    echo "> Step 4: register pool certificate on blockchain and delegate to it"
+        reg-pool-cert
     echo ""
     
 }
 
-function certificate-update {
+
+function stake-key-register {
+    reg-stake-key
+}
+
+function stake-key-unregister {
+    unreg-stake-key
+}
+
+function pool-certificate-edit {
     gen-pool-cert
 }
 
-function certificate-submit {
+function pool-certificate-submit {
     reg-pool-cert
 }
 
-function kes-update {
+function pool-certificate-recall {
+    unreg-pool-cert
+}
+
+function pool-keys-generate {
+    if gen-pools-keys; then
+       gen-kes-keys
+    fi
+}
+
+function kes-keys-update {
     gen-kes-keys
 }
 

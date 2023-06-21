@@ -1,175 +1,184 @@
 {
-  "global": {
-    "cardano-dir": "",
-    "ip": "",
-    "software": {
-      "cardano-node": {
-        "download-links": [
-            "https://s3.ap-southeast-1.amazonaws.com/update-cardano-mainnet.iohk.io/cardano-node-releases/",
-            "https://github.com/input-output-hk/cardano-node/releases/download/#/",
-            "https://update-cardano-mainnet.iohk.io/cardano-node-releases/"
-        ],
-        "name-format": "cardano-node-#-linux.tar.gz",
-        "path": "",
-        "desired-files": [
-          "*"
-        ],
-        "required-files": [
-          "config.json",
-          "topology.json",
-          "byron-genesis.json",
-          "shelley-genesis.json",
-          "alonzo-genesis.json",
-          "conway-genesis.json",
-          "submit-api-config.json"
-        ],
-        "required-software": []
-      },
-      "cardano-db-sync": {
-        "download-links": [
-            "https://update-cardano-mainnet.iohk.io/cardano-db-sync/"
-        ],
-        "name-format": "cardano-db-sync-#-linux.tar.gz",
-        "path": "",
-        "desired-files": [
-          "*"
-        ],
-        "required-files": [
-          "db-sync-config.json",
-          "postgresql-setup.sh",
-          "pgpass",
-          "schema/",
-          "schema/user_migration-0-0-0.sql"
-        ],
-        "required-software": [
-          "psql"
-        ]
-      },
-      "cardano-address": {
-        "download-links": [
-            "https://github.com/input-output-hk/cardano-addresses/releases/download/#/"
-        ],
-        "name-format": "cardano-addresses-#-linux64.tar.gz",
-        "path": "bin/",
-        "desired-files": [
-          "*"
-        ],
-        "required-files": [],
-        "required-software": []
-      },
-      "cardano-wallet": {
-        "download-links": [
-            "https://github.com/input-output-hk/cardano-wallet/releases/download/#/"
-        ],
-        "name-format": "cardano-wallet-#-linux64.tar.gz",
-        "path": "cardano-wallet-#-linux64/",
-        "desired-files": [
-          "cardano-wallet"
-        ],
-        "required-files": [],
-        "required-software": []
-      }
-    }
-  },
-  "networks": {
-    "mainnet": {
-      "cardano-node": {
-        "version": "8.0.0",
-        "node-port": "5001",
-        "submit-api-port": "8999",
-        "required-files": {
-          "config.json": "d https://book.world.dev.cardano.org/environments/%/config.json",
-          "topology.json": "d https://book.world.dev.cardano.org/environments/%/topology.json",
-          "byron-genesis.json": "d https://book.world.dev.cardano.org/environments/%/byron-genesis.json",
-          "shelley-genesis.json": "d https://book.world.dev.cardano.org/environments/%/shelley-genesis.json",
-          "alonzo-genesis.json": "d https://book.world.dev.cardano.org/environments/%/alonzo-genesis.json",
-          "conway-genesis.json": "d https://book.world.dev.cardano.org/environments/%/conway-genesis.json",
-          "submit-api-config.json": "d https://book.world.dev.cardano.org/environments/preprod/submit-api-config.json"
+    "global": {
+        "cardano-dir": "",
+        "ip": "",
+        "software": {
+            "cardano-node": {
+                "download-links": [
+                    "https://s3.ap-southeast-1.amazonaws.com/update-cardano-mainnet.iohk.io/cardano-node-releases/",
+                    "https://github.com/input-output-hk/cardano-node/releases/download/#/",
+                    "https://update-cardano-mainnet.iohk.io/cardano-node-releases/"
+                ],
+                "name-format": "cardano-node-#-linux.tar.gz",
+                "path": "",
+                "desired-files": [
+                    "*"
+                ],
+                "required-files": [
+                    "config.json",
+                    "topology.json",
+                    "byron-genesis.json",
+                    "shelley-genesis.json",
+                    "alonzo-genesis.json",
+                    "conway-genesis.json",
+                    "submit-api-config.json"
+                ],
+                "required-software": []
+            },
+            "cardano-db-sync": {
+                "download-links": [
+                    "https://update-cardano-mainnet.iohk.io/cardano-db-sync/"
+                ],
+                "name-format": "cardano-db-sync-#-linux.tar.gz",
+                "path": "",
+                "desired-files": [
+                    "*"
+                ],
+                "required-files": [
+                    "db-sync-config.json",
+                    "postgresql-setup.sh",
+                    "pgpass",
+                    "schema/",
+                    "schema/user_migration-0-0-0.sql"
+                ],
+                "required-software": [
+                    "psql"
+                ]
+            },
+            "cardano-address": {
+                "download-links": [
+                    "https://github.com/input-output-hk/cardano-addresses/releases/download/#/"
+                ],
+                "name-format": "cardano-addresses-#-linux64.tar.gz",
+                "path": "bin/",
+                "desired-files": [
+                    "*"
+                ],
+                "required-files": [],
+                "required-software": []
+            },
+            "cardano-wallet": {
+                "download-links": [
+                    "https://github.com/input-output-hk/cardano-wallet/releases/download/#/"
+                ],
+                "name-format": "cardano-wallet-#-linux64.tar.gz",
+                "path": "cardano-wallet-#-linux64/",
+                "desired-files": [
+                    "cardano-wallet"
+                ],
+                "required-files": [],
+                "required-software": []
+            }
         }
-      },
-      "cardano-db-sync": {
-        "version": "13.1.0.2",
-        "required-files": {
-          "db-sync-config.json": "d https://book.world.dev.cardano.org/environments/%/db-sync-config.json",
-          "postgresql-setup.sh": "d https://raw.githubusercontent.com/input-output-hk/cardano-db-sync/#/scripts/postgresql-setup.sh",
-          "pgpass": "p /var/run/postgresql:5432:%:*:* 0600",
-          "schema/": "dtgz https://github.com/input-output-hk/cardano-db-sync/archive/refs/tags/#.tar.gz cardano-db-sync-#/schema/ 1",
-          "schema/user_migration-0-0-0.sql": "p -- 0664"
-        }
-      },
-      "cardano-address": {
-        "version": "3.12.0"
-      },
-      "cardano-wallet": {
-        "version": "v2023-04-14",
-        "cardano-wallet-port": "8100"
-      }
     },
-    "preprod": {
-      "cardano-node": {
-        "version": "8.1.1",
-        "node-port": "5002",
-        "submit-api-port": "8998",
-        "required-files": {
-          "config.json": "d https://book.world.dev.cardano.org/environments/%/config.json",
-          "topology.json": "d https://book.world.dev.cardano.org/environments/%/topology.json",
-          "byron-genesis.json": "d https://book.world.dev.cardano.org/environments/%/byron-genesis.json",
-          "shelley-genesis.json": "d https://book.world.dev.cardano.org/environments/%/shelley-genesis.json",
-          "alonzo-genesis.json": "d https://book.world.dev.cardano.org/environments/%/alonzo-genesis.json",
-          "conway-genesis.json": "d https://book.world.dev.cardano.org/environments/%/conway-genesis.json",
-          "submit-api-config.json": "d https://book.world.dev.cardano.org/environments/preprod/submit-api-config.json"
+    "networks": {
+        "mainnet": {
+            "description": "The Cardano Production network. Slot = 1 sec. Epoch = 5 days;",
+            "software": {
+                "cardano-node": {
+                    "version": "8.0.0",
+                    "node-port": "5001",
+                    "submit-api-port": "8999",
+                    "required-files": {
+                        "config.json": "d https://book.world.dev.cardano.org/environments/%/config.json",
+                        "topology.json": "d https://book.world.dev.cardano.org/environments/%/topology.json",
+                        "byron-genesis.json": "d https://book.world.dev.cardano.org/environments/%/byron-genesis.json",
+                        "shelley-genesis.json": "d https://book.world.dev.cardano.org/environments/%/shelley-genesis.json",
+                        "alonzo-genesis.json": "d https://book.world.dev.cardano.org/environments/%/alonzo-genesis.json",
+                        "conway-genesis.json": "d https://book.world.dev.cardano.org/environments/%/conway-genesis.json",
+                        "submit-api-config.json": "d https://book.world.dev.cardano.org/environments/preprod/submit-api-config.json"
+                    }
+                },
+                "cardano-db-sync": {
+                    "version": "13.1.0.2",
+                    "required-files": {
+                        "db-sync-config.json": "d https://book.world.dev.cardano.org/environments/%/db-sync-config.json",
+                        "postgresql-setup.sh": "d https://raw.githubusercontent.com/input-output-hk/cardano-db-sync/#/scripts/postgresql-setup.sh",
+                        "pgpass": "p /var/run/postgresql:5432:%:*:* 0600",
+                        "schema/": "dtgz https://github.com/input-output-hk/cardano-db-sync/archive/refs/tags/#.tar.gz cardano-db-sync-#/schema/ 1",
+                        "schema/user_migration-0-0-0.sql": "p -- 0664"
+                    }
+                },
+                "cardano-address": {
+                    "version": "3.12.0"
+                },
+                "cardano-wallet": {
+                    "version": "v2023-04-14",
+                    "cardano-wallet-port": "8100"
+                }
+            }
+        },
+        "preprod": {
+            "description": "The Cardano Preproduction test network. Slot = 1 sec. Epoch = 5 days;",
+            "software": {
+                "cardano-node": {
+                    "version": "8.1.1",
+                    "node-port": "5002",
+                    "submit-api-port": "8998",
+                    "required-files": {
+                        "config.json": "d https://book.world.dev.cardano.org/environments/%/config.json",
+                        "topology.json": "d https://book.world.dev.cardano.org/environments/%/topology.json",
+                        "byron-genesis.json": "d https://book.world.dev.cardano.org/environments/%/byron-genesis.json",
+                        "shelley-genesis.json": "d https://book.world.dev.cardano.org/environments/%/shelley-genesis.json",
+                        "alonzo-genesis.json": "d https://book.world.dev.cardano.org/environments/%/alonzo-genesis.json",
+                        "conway-genesis.json": "d https://book.world.dev.cardano.org/environments/%/conway-genesis.json",
+                        "submit-api-config.json": "d https://book.world.dev.cardano.org/environments/preprod/submit-api-config.json"
+                    }
+                },
+                "cardano-db-sync": {
+                    "version": "13.1.0.2",
+                    "required-files": {
+                        "db-sync-config.json": "d https://book.world.dev.cardano.org/environments/%/db-sync-config.json",
+                        "postgresql-setup.sh": "d https://raw.githubusercontent.com/input-output-hk/cardano-db-sync/#/scripts/postgresql-setup.sh",
+                        "pgpass": "p /var/run/postgresql:5432:%:*:* 0600",
+                        "schema/": "dtgz https://github.com/input-output-hk/cardano-db-sync/archive/refs/tags/#.tar.gz cardano-db-sync-#/schema/ 1",
+                        "schema/user_migration-0-0-0.sql": "p -- 0664"
+                    }
+                },
+                "cardano-address": {
+                    "version": "3.12.0"
+                },
+                "cardano-wallet": {
+                    "version": "v2023-04-14",
+                    "cardano-wallet-port": "8101"
+                }
+            }
+        },
+        "preview": {
+            "description": "The Cardano Preview test network. Fast epochs, fast testing! Slot = 1 sec. Epoch = 1 day;",
+            "software": {
+                "cardano-node": {
+                    "version": "8.1.1",
+                    "node-port": "5003",
+                    "submit-api-port": "8997",
+                    "required-files": {
+                        "config.json": "d https://book.world.dev.cardano.org/environments/%/config.json",
+                        "topology.json": "d https://book.world.dev.cardano.org/environments/%/topology.json",
+                        "byron-genesis.json": "d https://book.world.dev.cardano.org/environments/%/byron-genesis.json",
+                        "shelley-genesis.json": "d https://book.world.dev.cardano.org/environments/%/shelley-genesis.json",
+                        "alonzo-genesis.json": "d https://book.world.dev.cardano.org/environments/%/alonzo-genesis.json",
+                        "conway-genesis.json": "d https://book.world.dev.cardano.org/environments/%/conway-genesis.json",
+                        "submit-api-config.json": "d https://book.world.dev.cardano.org/environments/preprod/submit-api-config.json"
+                    }
+                },
+                "cardano-db-sync": {
+                    "version": "13.1.0.2",
+                    "required-files": {
+                        "db-sync-config.json": "d https://book.world.dev.cardano.org/environments/%/db-sync-config.json",
+                        "postgresql-setup.sh": "d https://raw.githubusercontent.com/input-output-hk/cardano-db-sync/#/scripts/postgresql-setup.sh",
+                        "pgpass": "p /var/run/postgresql:5432:%:*:* 0600",
+                        "schema/": "dtgz https://github.com/input-output-hk/cardano-db-sync/archive/refs/tags/#.tar.gz cardano-db-sync-#/schema/ 1",
+                        "schema/user_migration-0-0-0.sql": "p -- 0664"
+                    }
+                },
+                "cardano-address": {
+                    "version": "3.12.0"
+                },
+                "cardano-wallet": {
+                    "version": "v2023-04-14",
+                    "cardano-wallet-port": "8102"
+                }
+            }
         }
-      },
-      "cardano-db-sync": {
-        "version": "13.1.0.2",
-        "required-files": {
-          "db-sync-config.json": "d https://book.world.dev.cardano.org/environments/%/db-sync-config.json",
-          "postgresql-setup.sh": "d https://raw.githubusercontent.com/input-output-hk/cardano-db-sync/#/scripts/postgresql-setup.sh",
-          "pgpass": "p /var/run/postgresql:5432:%:*:* 0600",
-          "schema/": "dtgz https://github.com/input-output-hk/cardano-db-sync/archive/refs/tags/#.tar.gz cardano-db-sync-#/schema/ 1",
-          "schema/user_migration-0-0-0.sql": "p -- 0664"
-        }
-      },
-      "cardano-address": {
-        "version": "3.12.0"
-      },
-      "cardano-wallet": {
-        "version": "v2023-04-14",
-        "cardano-wallet-port": "8101"
-      }
-    },
-    "preview": {
-      "cardano-node": {
-        "version": "8.1.1",
-        "node-port": "5003",
-        "submit-api-port": "8997",
-        "required-files": {
-          "config.json": "d https://book.world.dev.cardano.org/environments/%/config.json",
-          "topology.json": "d https://book.world.dev.cardano.org/environments/%/topology.json",
-          "byron-genesis.json": "d https://book.world.dev.cardano.org/environments/%/byron-genesis.json",
-          "shelley-genesis.json": "d https://book.world.dev.cardano.org/environments/%/shelley-genesis.json",
-          "alonzo-genesis.json": "d https://book.world.dev.cardano.org/environments/%/alonzo-genesis.json",
-          "conway-genesis.json": "d https://book.world.dev.cardano.org/environments/%/conway-genesis.json",
-          "submit-api-config.json": "d https://book.world.dev.cardano.org/environments/preprod/submit-api-config.json"
-        }
-      },
-      "cardano-db-sync": {
-        "version": "13.1.0.2",
-        "required-files": {
-          "db-sync-config.json": "d https://book.world.dev.cardano.org/environments/%/db-sync-config.json",
-          "postgresql-setup.sh": "d https://raw.githubusercontent.com/input-output-hk/cardano-db-sync/#/scripts/postgresql-setup.sh",
-          "pgpass": "p /var/run/postgresql:5432:%:*:* 0600",
-          "schema/": "dtgz https://github.com/input-output-hk/cardano-db-sync/archive/refs/tags/#.tar.gz cardano-db-sync-#/schema/ 1",
-          "schema/user_migration-0-0-0.sql": "p -- 0664"
-        }
-      },
-      "cardano-address": {
-        "version": "3.12.0"
-      },
-      "cardano-wallet": {
-        "version": "v2023-04-14",
-        "cardano-wallet-port": "8102"
-      }
     }
-  }
 }

@@ -3,8 +3,12 @@
 function build-tx {
     local TX_NAME=$1
     local DEPOSIT=${2:-0}
-    local MIN_UTXO=$(expr $DEPOSIT + 2000000)
+    local MIN_UTXO=2000000
     shift 2
+    
+    if [ $DEPOSIT -gt 0 ]; then
+        MIN_UTXO=$(expr $DEPOSIT + 2000000)
+    fi
     
 
     local CERTIFICATES=("$@")
@@ -77,12 +81,21 @@ function sign-tx {
     rm $CARDANO_KEYS_DIR/$TX_NAME.raw
 }
 
+
 function send-tx {
     local TX_NAME=$1
 
-    CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH $CARDANO_BINARIES_DIR/cardano-cli transaction submit \
+    RESPONSE=$(CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH $CARDANO_BINARIES_DIR/cardano-cli transaction submit \
         --tx-file $CARDANO_KEYS_DIR/$TX_NAME.signed \
-        "${MAGIC[@]}"
-
+        "${MAGIC[@]}" 2>&1)
+    
     rm $CARDANO_KEYS_DIR/$TX_NAME.signed
+    
+    if echo $RESPONSE | grep -q "BadInputsUTxO"; then
+        echo "Transaction cannot be made at the moment, please wait until the previous transaction is placed in the blockchain."
+        return 1
+    else
+        echo $RESPONSE
+        return 0
+    fi    
 }
