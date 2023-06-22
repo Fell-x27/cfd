@@ -1,6 +1,13 @@
 #!/bin/bash
 
 function build-tx {
+    if [[ -f $CARDANO_KEYS_DIR/chainbuffer ]]; then
+        source $CARDANO_KEYS_DIR/chainbuffer
+    else
+        CHAINED_UTXO_ID=""
+        CHAINED_UTXO_BALANCE=""
+    fi
+
     local TX_NAME=$1
     local DEPOSIT=${2:-0}
     local MIN_UTXO=2000000
@@ -14,20 +21,26 @@ function build-tx {
     local CERTIFICATES=("$@")
     local CERTIFICATES=( $(build-arg-array "--certificate-file" ${CERTIFICATES[@]}) )
     
-    local UTXO_list=$(wrap-cli-command get-utxo-json)
-    
-    
-    local UTXO_hashes=($(echo $UTXO_list | jq -r ". | keys" | jq -r ".[]"))
     local CHOSEN_UTXO=("0#0" 0)
-
-    for i in "${UTXO_hashes[@]}"
-    do
-        AMOUNT=$(echo $UTXO_list | jq -r ".[\"$i\"].value.lovelace")
-        if [ $AMOUNT -gt ${CHOSEN_UTXO[1]} ]; then
-            CHOSEN_UTXO[0]=$i
-            CHOSEN_UTXO[1]=$AMOUNT
-        fi
-    done
+    
+    if [[ -z "$CHAINED_UTXO_ID" || -z "$CHAINED_UTXO_BALANCE" ]]; then  
+        #echo -e "${WHITE_ON_RED} NO CHAIN ${NORMAL}"          
+        local UTXO_list=$(wrap-cli-command get-utxo-json)      
+        local UTXO_hashes=($(echo $UTXO_list | jq -r ". | keys" | jq -r ".[]"))
+    
+        for i in "${UTXO_hashes[@]}"
+        do
+            AMOUNT=$(echo $UTXO_list | jq -r ".[\"$i\"].value.lovelace")
+            if [ $AMOUNT -gt ${CHOSEN_UTXO[1]} ]; then
+                CHOSEN_UTXO[0]=$i
+                CHOSEN_UTXO[1]=$AMOUNT
+            fi
+        done
+    else
+        #echo -e "${WHITE_ON_RED} CHAIN ${NORMAL}"
+        CHOSEN_UTXO[0]=$CHAINED_UTXO_ID
+        CHOSEN_UTXO[1]=$CHAINED_UTXO_BALANCE
+    fi
 
     
     if [ ${CHOSEN_UTXO[1]} -lt $MIN_UTXO ]; then
@@ -64,6 +77,12 @@ function build-tx {
         --fee $FEE \
         --out-file $CARDANO_KEYS_DIR/$TX_NAME.raw \
         ${CERTIFICATES[@]}
+        
+    CHAINED_UTXO_BALANCE=$CHANGE
+    CHAINED_UTXO_ID="$($CARDANO_BINARIES_DIR/cardano-cli transaction txid --tx-file $CARDANO_KEYS_DIR/$TX_NAME.raw)#0"
+    
+    echo "CHAINED_UTXO_ID='$CHAINED_UTXO_ID'" > $CARDANO_KEYS_DIR/chainbuffer
+    echo "CHAINED_UTXO_BALANCE='$CHAINED_UTXO_BALANCE'" >> $CARDANO_KEYS_DIR/chainbuffer
 }
 
 function sign-tx {
@@ -91,8 +110,16 @@ function send-tx {
     
     rm $CARDANO_KEYS_DIR/$TX_NAME.signed
     
+    if ! echo "$RESPONSE" | grep -q "successfully"; then
+        rm $CARDANO_KEYS_DIR/chainbuffer
+    fi
+    
     if echo $RESPONSE | grep -q "BadInputsUTxO"; then
         echo "Transaction cannot be made at the moment, please wait until the previous transaction is placed in the blockchain."
+        return 1
+    elif echo $RESPONSE | grep -q "StakeDelegationImpossibleDELEG" || echo $RESPONSE | grep -q "StakeKeyNotRegisteredDELEG"; then
+        #rm $CARDANO_KEYS_DIR/chainbuffer
+        echo -e "${BOLD}${WHITE_ON_RED} ERROR :${NORMAL} Can't register the pool - your staking key is not registered!" 
         return 1
     else
         echo $RESPONSE
