@@ -276,3 +276,12 @@ function get-current-epoch {
      "${MAGIC[@]}" | jq .epoch
 }
 
+function is-tx-in-mempool {
+    TX_ID=$1
+    CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH $CARDANO_BINARIES_DIR/cardano-cli \
+    query \
+    tx-mempool \
+    tx-exists $TX_ID \
+    "${MAGIC[@]}"
+}
+
