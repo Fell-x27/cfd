@@ -7,6 +7,18 @@ function build-tx {
         CHAINED_UTXO_ID=""
         CHAINED_UTXO_BALANCE=""
     fi
+    
+    if ! [ -z $CHAINED_UTXO_ID ]; then
+        local IS_TX_IN_MEMPOOL=$(wrap-cli-command is-tx-in-mempool $(echo "$CHAINED_UTXO_ID#0" | cut -d'#' -f1))        
+        local TX_STATUS=$(echo "$IS_TX_IN_MEMPOOL" | jq -r '.exists')                 
+        if [ "$TX_STATUS" == "false" ]; then
+            CHAINED_UTXO_ID=""
+            CHAINED_UTXO_BALANCE=""
+            rm $CARDANO_KEYS_DIR/chainbuffer     
+        fi
+    fi    
+    
+       
 
     local TX_NAME=$1
     local DEPOSIT=${2:-0}
@@ -15,19 +27,18 @@ function build-tx {
     
     if [ $DEPOSIT -gt 0 ]; then
         MIN_UTXO=$(expr $DEPOSIT + 2000000)
-    fi
-    
+    fi    
 
     local CERTIFICATES=("$@")
     local CERTIFICATES=( $(build-arg-array "--certificate-file" ${CERTIFICATES[@]}) )
     
     local CHOSEN_UTXO=("0#0" 0)
-    
+    local UTXO_list=$(wrap-cli-command get-utxo-json)      
+    local UTXO_hashes=($(echo $UTXO_list | jq -r ". | keys" | jq -r ".[]"))    
+  
+   
     if [[ -z "$CHAINED_UTXO_ID" || -z "$CHAINED_UTXO_BALANCE" ]]; then  
-        #echo -e "${WHITE_ON_RED} NO CHAIN ${NORMAL}"          
-        local UTXO_list=$(wrap-cli-command get-utxo-json)      
-        local UTXO_hashes=($(echo $UTXO_list | jq -r ". | keys" | jq -r ".[]"))
-    
+#        echo -e "${WHITE_ON_RED} NOT CHAINED ${NORMAL}"              
         for i in "${UTXO_hashes[@]}"
         do
             AMOUNT=$(echo $UTXO_list | jq -r ".[\"$i\"].value.lovelace")
@@ -37,9 +48,9 @@ function build-tx {
             fi
         done
     else
-        #echo -e "${WHITE_ON_RED} CHAIN ${NORMAL}"
+#        echo -e "${WHITE_ON_RED} CHAINED ${NORMAL}"
         CHOSEN_UTXO[0]=$CHAINED_UTXO_ID
-        CHOSEN_UTXO[1]=$CHAINED_UTXO_BALANCE
+        CHOSEN_UTXO[1]=$CHAINED_UTXO_BALANCE        
     fi
 
     

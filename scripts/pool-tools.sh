@@ -319,7 +319,7 @@ function reg-pool-cert {
     
     wrap-cli-command get-protocol
 
-    if [[ "$FUTURE_POOL_PARAMS" != "null" ]] || ( [[ "$POOL_PARAMS" != "null" ]] && [[ "$POOL_RET" == "null" ]] ); then
+    if [[ "$FUTURE_POOL_PARAMS" != "null" ]] || [[ "$POOL_PARAMS" != "null" ]]; then
         echo -n "POOL IS ALREADY REGISTERED..."
         echo "renewing pool cert;"
         build-tx "tx" 0 $CARDANO_POOL_DIR/pool-registration.cert        
@@ -382,8 +382,8 @@ function unreg-pool-cert {
 
     echo "Checking pool status..."
 
-    local POOL_STATE=$(wrap-cli-command get-pool-state $POOL_ID)
-    
+    local POOL_STATE=$(wrap-cli-command get-pool-state $POOL_ID)    
+
     local KEY=$(echo "$POOL_STATE" | jq -r 'keys[0]')   
    
     local FUTURE_POOL_PARAMS=$(echo "$POOL_STATE" | jq -r ".\"$KEY\".futurePoolParams")
@@ -392,7 +392,7 @@ function unreg-pool-cert {
     
     wrap-cli-command get-protocol
 
-    if [[ "$FUTURE_POOL_PARAMS" != "null" ]] || ( [[ "$POOL_PARAMS" != "null" ]] && [[ "$POOL_RET" == "null" ]] ); then
+    if ( [[ "$FUTURE_POOL_PARAMS" != "null" ]] ||  [[ "$POOL_PARAMS" != "null" ]] ); then
         echo "The pool [$POOL_ID] will be retired"
        
         if ! are-you-sure-dialog; then            
