@@ -312,9 +312,10 @@ function reg-pool-cert {
     local POOL_STATE=$(wrap-cli-command get-pool-state $POOL_ID)
     
     local KEY=$(echo "$POOL_STATE" | jq -r 'keys[0]')
-    local FUTURE_POOL_PARAMS=$(echo "$POOL_STATE" | jq -r ".$KEY.futurePoolParams")
-    local POOL_PARAMS=$(echo "$POOL_STATE" | jq -r ".$KEY.poolParams")
-    local POOL_RET=$(echo "$POOL_STATE" | jq -r ".$KEY.retiring")
+    local FUTURE_POOL_PARAMS=$(echo "$POOL_STATE" | jq -r ".\"$KEY\".futurePoolParams")
+    local POOL_PARAMS=$(echo "$POOL_STATE" | jq -r ".\"$KEY\".poolParams")
+    local POOL_RET=$(echo "$POOL_STATE" | jq -r ".\"$KEY\".retiring")
+
     
     wrap-cli-command get-protocol
 
@@ -342,14 +343,14 @@ function reg-pool-cert {
         build-tx "tx" $(jq -r ".stakePoolDeposit" $CARDANO_CONFIG_DIR/protocol.json) \
             $CARDANO_POOL_DIR/pool-registration.cert \
             $CARDANO_POOL_DIR/delegation.cert
-
-        echo "Done!"        
+                    
         rm $CARDANO_KEYS_DIR/payment/stake.vkey 
         rm $CARDANO_POOL_DIR/delegation.cert
     fi
 
     sign-tx  "tx" $CARDANO_KEYS_DIR/payment/payment.skey $CARDANO_KEYS_DIR/payment/stake.skey $COLD_KEYS/cold.skey 
     if send-tx "tx"; then
+        echo "Done!"
         echo -e "${BLACK_ON_YELLOW}Please wait until the transaction is confirmed on the blockchain to check if the pool has been registered.${NORMAL}"
     fi
     
@@ -383,10 +384,11 @@ function unreg-pool-cert {
 
     local POOL_STATE=$(wrap-cli-command get-pool-state $POOL_ID)
     
-    local KEY=$(echo "$POOL_STATE" | jq -r 'keys[0]')
-    local FUTURE_POOL_PARAMS=$(echo "$POOL_STATE" | jq -r ".$KEY.futurePoolParams")
-    local POOL_PARAMS=$(echo "$POOL_STATE" | jq -r ".$KEY.poolParams")
-    local POOL_RET=$(echo "$POOL_STATE" | jq -r ".$KEY.retiring")
+    local KEY=$(echo "$POOL_STATE" | jq -r 'keys[0]')   
+   
+    local FUTURE_POOL_PARAMS=$(echo "$POOL_STATE" | jq -r ".\"$KEY\".futurePoolParams")
+    local POOL_PARAMS=$(echo "$POOL_STATE" | jq -r ".\"$KEY\".poolParams")
+    local POOL_RET=$(echo "$POOL_STATE" | jq -r ".\"$KEY\".retiring")
     
     wrap-cli-command get-protocol
 
