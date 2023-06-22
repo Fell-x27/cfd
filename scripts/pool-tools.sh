@@ -48,6 +48,7 @@ function reg-stake-key {
  
         build-tx "tx" $(jq -r ".stakeAddressDeposit" $CARDANO_CONFIG_DIR/protocol.json) $CARDANO_KEYS_DIR/payment/stake.cert        
         sign-tx  "tx" $CARDANO_KEYS_DIR/payment/payment.skey $CARDANO_KEYS_DIR/payment/stake.skey        
+        echo "Trying to register..."
         send-tx  "tx"
         
         rm $CARDANO_KEYS_DIR/payment/stake.cert
@@ -69,6 +70,7 @@ function unreg-stake-key {
         echo -e "${BOLD}${WHITE_ON_RED }ERROR ${NORMAL}: you have to create or restore wallet before!"
         exit 1
     fi
+       
     
     $CARDANO_BINARIES_DIR/cardano-cli key verification-key \
         --signing-key-file $CARDANO_KEYS_DIR/payment/stake.skey \
@@ -88,6 +90,13 @@ function unreg-stake-key {
     if [ "$STAKE_ADDR_STATE" == "[]" ]; then
         echo -e "${BOLD}${WHITE_ON_RED} ERROR :${NORMAL} Your stake key is not registered"       
     else
+        echo -e "${BLACK_ON_YELLOW} Warning! ${NORMAL} Your stake key will be de-registered!"
+        echo -e "All your pending rewards (if any) will ${BLACK_ON_YELLOW} become unclaimable ${NORMAL}!"
+        if ! are-you-sure-dialog; then            
+            echo "Aborted.";
+            exit 1
+        fi
+    
         $CARDANO_BINARIES_DIR/cardano-cli stake-address deregistration-certificate \
             --stake-verification-key-file $CARDANO_KEYS_DIR/payment/stake.vkey \
             --out-file $CARDANO_KEYS_DIR/payment/stake.cert

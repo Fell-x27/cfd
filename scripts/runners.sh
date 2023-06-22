@@ -11,7 +11,7 @@ RUNNERS["wallet"]="run_cardano_wallet|cardano-wallet"
 function run_cardano_node {
     if prepare_software "cardano-node"; then
         SERVER_IP=$(from-config ".global.ip")
-        NODE_PORT=$(from-config ".networks.\"${NETWORK_NAME}\".\"cardano-node\".\"node-port\"")
+        NODE_PORT=$(from-config ".networks.\"${NETWORK_NAME}\".software.\"cardano-node\".\"node-port\"")
 
         $CARDANO_BINARIES_DIR/cardano-node run \
             --config $CARDANO_CONFIG_DIR/config.json \
@@ -40,7 +40,7 @@ function run_cardano_pool {
 
     if prepare_software "cardano-node"; then
         SERVER_IP=$(from-config ".global.ip")
-        NODE_PORT=$(from-config ".networks.\"${NETWORK_NAME}\".\"cardano-node\".\"node-port\"")
+        NODE_PORT=$(from-config ".networks.\"${NETWORK_NAME}\".software.\"cardano-node\".\"node-port\"")
 
         
 
@@ -102,7 +102,7 @@ fi
 
 function run_cardano_sapi {
     if prepare_software "cardano-node"; then
-        SAPI_PORT=$(from-config ".networks.${NETWORK_NAME}.\"cardano-node\".\"submit-api-port\"")
+        SAPI_PORT=$(from-config ".networks.${NETWORK_NAME}.software.\"cardano-node\".\"submit-api-port\"")
 
         $CARDANO_BINARIES_DIR/cardano-submit-api \
         --config $CARDANO_CONFIG_DIR/submit-api-config.json \
@@ -115,7 +115,7 @@ function run_cardano_sapi {
 function run_cardano_wallet {
     if prepare_software "cardano-wallet"; then
         SERVER_IP=$(from-config ".global.ip")
-        CARDANO_WALLET_PORT=$(from-config ".networks.\"${NETWORK_NAME}\".\"cardano-wallet\".\"cardano-wallet-port\"")
+        CARDANO_WALLET_PORT=$(from-config ".networks.\"${NETWORK_NAME}\".software.\"cardano-wallet\".\"cardano-wallet-port\"")
         WALLETS_STORAGE=$CARDANO_STORAGE_DIR/wallets/
         mkdir -p $WALLETS_STORAGE
 
