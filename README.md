@@ -18,7 +18,27 @@ chmod +x ./cardano.sh
 ```
 Then follow the instructions :)
 
+# Some demos:
 That's enough to get acquainted with Cardano!
+
+https://github.com/Fell-x27/cfd/assets/18358207/c70372a8-7181-4e0e-b85a-72edf906919b
+
+
+https://github.com/Fell-x27/cfd/assets/18358207/9ee0564f-aaab-4e4c-aac5-27fa830689df
+
+
+https://github.com/Fell-x27/cfd/assets/18358207/13061833-0723-4fab-9569-074ab1fe6993
+
+
+https://github.com/Fell-x27/cfd/assets/18358207/b503b0b8-6d7b-494c-934c-4b8dfbe6f46e
+
+
+
+https://github.com/Fell-x27/cfd/assets/18358207/c595b52a-a4cb-4627-be19-442fc525ab39
+
+
+
+https://github.com/Fell-x27/cfd/assets/18358207/625e1ff2-ac79-4ff2-8100-a386492cf910
 
 CFD will help you to:
 1) Automatically install, configure and run Cardano software;
