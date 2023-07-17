@@ -51,6 +51,7 @@ function run-software {
     fi
     
     echo "Selected option: $SELECTED_KEY"
+
     
     INNER_ARRAY=(${RUNNERS[$SELECTED_KEY]})
     RUNNER=$(echo "${INNER_ARRAY}" | cut -d'|' -f1)

@@ -167,9 +167,11 @@ function gen-pool-cert {
     local POOL_CONF=$CARDANO_POOL_DIR/settings.json
 
     wrap-cli-command get-protocol 
+    
+    local MIN_POOL_COST=$(jq -r ".minPoolCost" $CARDANO_CONFIG_DIR/protocol.json)
 
     if ! test -f "$POOL_CONF"; then
-        echo "{\"PLEDGE\":\"0\", \"OPCOST\":\"$(jq -r ".minPoolCost" $CARDANO_CONFIG_DIR/protocol.json)\", \"MARGIN\":\"0\", \"META_URL\":\"\", \"RELAYS\":\"\"}" > $POOL_CONF
+        echo "{\"PLEDGE\":\"0\", \"OPCOST\":\"$MIN_POOL_COST\", \"MARGIN\":\"0\", \"META_URL\":\"\", \"RELAYS\":\"\"}" > $POOL_CONF
     fi
 
 
@@ -195,9 +197,9 @@ function gen-pool-cert {
     OPCOST=${OPCOST:-$DEF_OPCOST}
     OPCOST=$(echo "$OPCOST" | sed 's/"//g')
    
-    if (( OPCOST < DEF_OPCOST )); then
-        OPCOST=$DEF_OPCOST
-        echo "Operational cost cannot be less than $DEF_OPCOST. It has been set to $DEF_OPCOST."
+    if (( OPCOST < MIN_POOL_COST )); then
+        OPCOST=$MIN_POOL_COST
+        echo "Operational cost cannot be less than $MIN_POOL_COST. It has been set to $MIN_POOL_COST."
     fi
 
 

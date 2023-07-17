@@ -43,3 +43,5 @@ function database-manager {
     $CARDANO_CONFIG_DIR/postgresql-setup.sh --$COMMAND $2 $3
 }
 
+
+
