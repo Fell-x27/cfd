@@ -3,22 +3,25 @@
 # ANSI escape codes
 BOLD="\033[1m"
 NORMAL="\033[0m"
+UNDERLINE="\033[4m"
 
 BLACK_ON_YELLOW="\033[30;43m"
 BLACK_ON_LIGHT_GRAY="\033[30;47m"
 WHITE_ON_RED="\033[37;41m"
+GREEN_ON_BLACK="\033[32;40m"
 
 
 spin() {
-  local -r chars="/-\|"
+  local -r CHARS="/-\|"
 
   while :; do
-    for (( i=0; i<${#chars}; i++ )); do
+    for (( I=0; I<${#CHARS}; I++ )); do
       sleep 0.1
-      echo -ne "${chars:$i:1}" "\r"
+      echo -ne "${CHARS:$I:1}" "\r"
     done
   done
 }
+
 
 function check-db-sync-state {
     local PGPASS_FILE=$1
@@ -92,33 +95,18 @@ function get-version-from-path {
 }
 
 
-function rewriting-prompt {    
-    if [[ -f "$1" ]]; then
-        printf "${BOLD}${WHITE_ON_RED}Warning!${NORMAL} $2 Are you sure? (Y/N) "
-        read answer
-        case ${answer^^} in
-            Y|YES)
-                return 0
-                ;;
-            *)
-                echo "Operation canceled."
-                return 1
-                ;;
-        esac
-    fi
-}
-
 function wrap-cli-command {
     local COMMAND=$1
     output=$("$COMMAND" "${@:2}" 2>&1)
     if echo "$output" | grep -q "does not exist ("; then
-        echo -e "\e[1;41mERROR\e[1;m Can't connect to the Cardano node. Plese, check if it launched."
+        echo -e "\e[1;41mERROR\e[1;m Can't connect to the Cardano node. Please, check if it launched."
         echo ""
         exit 1
-    else
-        echo -e  "$output"
+    elif [ -n "$output" ]; then        
+        echo -e "$output"
     fi    
 }
+
 
 function get-binary {
     local SF_NAME=$1        
@@ -242,10 +230,8 @@ function get-sf-version {
 function validate-node-sync {
     local LIMIT=${1:-"100"}
     wrap-cli-command run-check-sync "silent"
-    SYNC_STATE=$(run-check-sync)    
-    SYNC_STATE=$(echo "$SYNC_STATE" | jq -r '.syncProgress')
-    
-    
+    SYNC_STATE=$(run-check-sync)  
+    SYNC_STATE=$(echo "$SYNC_STATE" | jq -r '.syncProgress')    
     if (( $(echo "$SYNC_STATE < $LIMIT" | bc -l) )); then
         echo -e "${BOLD}${BLACK_ON_YELLOW}WARNING${NORMAL}: The node is not synced yet, please wait."
         echo "Current sync level: $SYNC_STATE%"
@@ -253,14 +239,6 @@ function validate-node-sync {
     fi
 }
 
-function are-you-sure-dialog {
-    read -p "Are you sure? (y/N) " -r
-    if [[ ! $REPLY =~ ^[Yy](es)?$ ]]
-    then
-        return 1
-    fi
-    return 0
-}
 
 function get-current-slot {
     CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH $CARDANO_BINARIES_DIR/cardano-cli \

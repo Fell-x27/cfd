@@ -1,5 +1,6 @@
 #!/bin/bash
 
+source "$(dirname "$0")/scripts/menus-n-dialogs.sh"
 source "$(dirname "$0")/scripts/network-manager.sh"
 source "$(dirname "$0")/scripts/common-helpers.sh"
 source "$(dirname "$0")/scripts/tx-tools.sh"

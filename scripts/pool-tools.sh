@@ -278,19 +278,22 @@ function gen-pool-cert {
         $META_HASH \
         --out-file $CARDANO_POOL_DIR/pool-registration.cert
 
-    echo "Pool's certificate has been saved locally at $CARDANO_POOL_DIR/pool-registration.cert"
-    echo "You have to post it on the Cardano blockchain then."
-    echo "You can do it with: $(dirname $0)/cardano.sh $NETWORK_NAME pool-manager pool-certificate-submit"
+    if ! are-you-sure-dialog "Submit it to the blockchain?" "y"; then                            
+        echo "Aborted."
+        exit 1
+    else 
+        echo "Submitting...." 
+        reg-pool-cert   
+    fi      
     rm $CARDANO_KEYS_DIR/payment/stake.vkey
 }
 
-
-function reg-pool-cert {
+function get-pool-data {
     local COLD_KEYS=$CARDANO_KEYS_DIR/cold
     local KES_KEYS=$CARDANO_KEYS_DIR/kes
     local PAYMENT_KEYS=$CARDANO_KEYS_DIR/payment
-
-    if [ ! -f "$CARDANO_KEYS_DIR/payment/stake.skey" ]; then
+    
+        if [ ! -f "$CARDANO_KEYS_DIR/payment/stake.skey" ]; then
         echo -e "${BOLD}${WHITE_ON_RED }ERROR ${NORMAL}: you have to create or restore wallet before!"
         exit 1
     fi
@@ -308,19 +311,24 @@ function reg-pool-cert {
 
     local POOL_ID=$($CARDANO_BINARIES_DIR/cardano-cli stake-pool id \
     --cold-verification-key-file $COLD_KEYS/cold.vkey)
+    
+    echo $(wrap-cli-command get-pool-state $POOL_ID)    
+}
+
+
+function reg-pool-cert {
+    local COLD_KEYS=$CARDANO_KEYS_DIR/cold
+    local KES_KEYS=$CARDANO_KEYS_DIR/kes
+    local PAYMENT_KEYS=$CARDANO_KEYS_DIR/payment
 
     echo "Checking pool status..."
-
-    local POOL_STATE=$(wrap-cli-command get-pool-state $POOL_ID)
+    local POOL_STATE=$(get-pool-data)
     
     local KEY=$(echo "$POOL_STATE" | jq -r 'keys[0]')
     local FUTURE_POOL_PARAMS=$(echo "$POOL_STATE" | jq -r ".\"$KEY\".futurePoolParams")
     local POOL_PARAMS=$(echo "$POOL_STATE" | jq -r ".\"$KEY\".poolParams")
-    local POOL_RET=$(echo "$POOL_STATE" | jq -r ".\"$KEY\".retiring")
-
+    local POOL_RET=$(echo "$POOL_STATE" | jq -r ".\"$KEY\".retiring")        
     
-    wrap-cli-command get-protocol
-
     if [[ "$FUTURE_POOL_PARAMS" != "null" ]] || [[ "$POOL_PARAMS" != "null" ]]; then
         echo -n "POOL IS ALREADY REGISTERED..."
         echo "renewing pool cert;"
@@ -354,8 +362,7 @@ function reg-pool-cert {
     if send-tx "tx"; then
         echo "Done!"
         echo -e "${BLACK_ON_YELLOW}Please wait until the transaction is confirmed on the blockchain to check if the pool has been registered.${NORMAL}"
-    fi
-    
+    fi    
 }
 
 function unreg-pool-cert {
@@ -363,37 +370,18 @@ function unreg-pool-cert {
     local KES_KEYS=$CARDANO_KEYS_DIR/kes
     local PAYMENT_KEYS=$CARDANO_KEYS_DIR/payment
 
-    if [ ! -f "$CARDANO_KEYS_DIR/payment/stake.skey" ]; then
-        echo -e "${BOLD}${WHITE_ON_RED }ERROR ${NORMAL}: you have to create or restore wallet before!"
-        exit 1
-    fi
-
-    if [ ! -f "$COLD_KEYS/cold.skey" ] || \
-       [ ! -f "$KES_KEYS/vrf.skey" ]; then
-        echo -e "${BOLD}${WHITE_ON_RED }ERROR ${NORMAL}: can't find [cold.skey, vrf.skey] keys. Please move them to $COLD_KEYS or launch 'init-pool' to create them."
-        exit 1
-    fi
-
-    if [ ! -f $CARDANO_POOL_DIR/pool-registration.cert ]; then
-        echo -e "${BOLD}${WHITE_ON_RED }ERROR ${NORMAL}: can't find the Pool Certificate. Please, move it $COLD_KEYS or create with 'init-pool' wizard."
-        exit 1
-    fi
-
+    echo "Checking pool status..."
+    local POOL_STATE=$(get-pool-data)
+    
     local POOL_ID=$($CARDANO_BINARIES_DIR/cardano-cli stake-pool id \
     --cold-verification-key-file $COLD_KEYS/cold.vkey)
-
-    echo "Checking pool status..."
-
-    local POOL_STATE=$(wrap-cli-command get-pool-state $POOL_ID)    
-
+    
     local KEY=$(echo "$POOL_STATE" | jq -r 'keys[0]')   
    
     local FUTURE_POOL_PARAMS=$(echo "$POOL_STATE" | jq -r ".\"$KEY\".futurePoolParams")
     local POOL_PARAMS=$(echo "$POOL_STATE" | jq -r ".\"$KEY\".poolParams")
     local POOL_RET=$(echo "$POOL_STATE" | jq -r ".\"$KEY\".retiring")
     
-    wrap-cli-command get-protocol
-
     if ( [[ "$FUTURE_POOL_PARAMS" != "null" ]] ||  [[ "$POOL_PARAMS" != "null" ]] ); then
         echo "The pool [$POOL_ID] will be retired"
        

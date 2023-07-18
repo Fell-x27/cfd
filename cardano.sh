@@ -1,44 +1,34 @@
 #!/bin/bash
 
-# Including the startup script
 source "$(dirname "$0")/scripts/startup.sh"
 
-echo ""
-echo "***************************************"
+function init-cfd {
+    local OPTION_N_DESCRIPTIONS=(
+        "run-software|run-software|Display menu with available Cardano software."
+        "check-sync|check-sync|Check the sync state of an already launched node."
+        "wallet-manager|wallet-manager|Display menu for wallet related actions."
+        "pool-manager|pool-manager|Display menu for pool related actions."
+        "database-manager|database-manager|Display menu for actions related to the db-sync database."
+        "cli|cli|An enhanced cardano-cli wrapper that automatically handles network-magic and socket-path issues."
+    )
 
-# An array to store the names of available modes
-AVAILABLE_MODES=("run-software" "check-sync" "wallet-manager" "pool-manager" "database-manager" "cli")
+    CHOSEN_OPTION=${1:-""} 
+    show-menu "$CHOSEN_OPTION" "${OPTION_N_DESCRIPTIONS[@]}"
+    echo "Selected mode: $MENU_SELECTED_OPTION"
 
-if [ ! -z "$2" ] && [[ " ${AVAILABLE_MODES[@]} " =~ " $2 " ]]; then
-    MODE_NAME="$2"
+    source "$(dirname "$0")/scripts/${MENU_SELECTED_COMMAND}.sh"
+    "${MENU_SELECTED_COMMAND}" "${@:2}"
+}
+
+init-cfd ${@:2}
+DIRECT_CALL=($DIRECT_CALL)
+
+if [ "$#" -gt "${#DIRECT_CALL[@]}" ]; then
+    DIRECT_CALL="$0 $@"
 else
-    if [ ! -z "$2" ] && [[ ! " ${AVAILABLE_MODES[@]} " =~ " $2 " ]]; then
-        echo "Unknown mode."
-    else
-        echo "Mode not selected."
-    fi
-
-    echo "Available modes:"
-
-    COUNTER=1
-    for MODE in "${AVAILABLE_MODES[@]}"; do
-        echo "$COUNTER. $MODE"
-        ((COUNTER++))
-    done
-
-    echo -n "Enter the number corresponding to the desired mode:"
-    read SELECTED_NUM
-
-    if [[ $SELECTED_NUM -ge 1 ]] && [[ $SELECTED_NUM -le ${#AVAILABLE_MODES[@]} ]]; then
-        MODE_NAME="${AVAILABLE_MODES[SELECTED_NUM-1]}"
-    else
-        echo "Invalid selection. Exiting."
-        exit 1
-    fi
+    DIRECT_CALL="${DIRECT_CALL[@]}"
 fi
 
-echo "Selected mode: $MODE_NAME"
-# Pass the rest of the arguments to the chosen mode
-source "$(dirname "$0")/scripts/${MODE_NAME}.sh"
-"${MODE_NAME}" "${@:3}"
+echo "---"
+echo -e "${UNDERLINE}Direct call for this action${NORMAL}: $DIRECT_CALL"
 

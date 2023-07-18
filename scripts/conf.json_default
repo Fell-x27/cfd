@@ -59,7 +59,8 @@
             },
             "cardano-wallet": {
                 "download-links": [
-                    "https://github.com/input-output-hk/cardano-wallet/releases/download/#/"
+                    "https://github.com/input-output-hk/cardano-wallet/releases/download/#/",
+                    "https://github.com/cardano-foundation/cardano-wallet/releases/download/#/"
                 ],
                 "name-format": "cardano-wallet-#-linux64.tar.gz",
                 "path": "cardano-wallet-#-linux64/",

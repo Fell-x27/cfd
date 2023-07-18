@@ -1,13 +1,4 @@
 
-declare -A RUNNERS
-
-RUNNERS["node-relay"]="run_cardano_node|cardano-node"
-RUNNERS["node-relay-local"]="run_cardano_node --noip|cardano-node"
-RUNNERS["node-block-producer"]="run_cardano_pool|cardano-node"
-RUNNERS["db-sync"]="run_cardano_db_sync|cardano-db-sync"
-RUNNERS["submit-api"]="run_cardano_sapi|cardano-node"
-RUNNERS["wallet"]="run_cardano_wallet|cardano-wallet"
-
 function run_cardano_node {
     if prepare_software "cardano-node"; then
         SERVER_IP=$(from-config ".global.ip")
@@ -102,7 +93,7 @@ fi
 
 function run_cardano_sapi {
     if prepare_software "cardano-node"; then
-        SAPI_PORT=$(from-config ".networks.${NETWORK_NAME}.software.\"cardano-node\".\"submit-api-port\"")
+        SAPI_PORT=$(from-config ".networks.\"${NETWORK_NAME}\".software.\"cardano-node\".\"submit-api-port\"")
 
         $CARDANO_BINARIES_DIR/cardano-submit-api \
         --config $CARDANO_CONFIG_DIR/submit-api-config.json \
@@ -111,6 +102,7 @@ function run_cardano_sapi {
         "${MAGIC[@]}"
     fi
 }
+
 
 function run_cardano_wallet {
     if prepare_software "cardano-wallet"; then

@@ -1,45 +1,23 @@
 #!/bin/bash
 
-function pool-manager {
+function pool-manager {    
+    local OPTION_N_DESCRIPTIONS=(
+        "pool-setup-wizard|pool-setup-wizard|Set up a new stake pool using a step-by-step interface."
+        "stake-key-register|stake-key-register|Register pool-owner's stake key."
+        "stake-key-unregister|stake-key-unregister|Unregister pool-owner's stake key."
+        "pool-certificate-edit|pool-certificate-edit|Edit your stake pool certificate."
+        "pool-certificate-submit|pool-certificate-submit|Submit your stake pool certificate to the blockchain."
+        "pool-certificate-recall|pool-certificate-recall|Schedule retirement of the stake pool."
+        "pool-keys-generate|pool-keys-generate|Generate your stake pool keys."
+        "kes-keys-update|kes-keys-update|Update your KES keys."
+    )
     validate-node-sync
-    echo "---"
     prepare_software "cardano-address" "issues"
-    echo ""
-    echo "***************************************"
-
-    AVAILABLE_ACTIONS=("pool-setup-wizard" "stake-key-register" "stake-key-unregister" "pool-certificate-edit" "pool-certificate-submit" "pool-certificate-recall" "pool-keys-generate" "kes-keys-update")
-
-
-    if [ ! -z "$1" ] && [[ " ${AVAILABLE_ACTIONS[@]} " =~ " $1 " ]]; then
-        ACTION_NAME="$1"
-    else
-        if [ ! -z "$1" ] && [[ ! " ${AVAILABLE_ACTIONS[@]} " =~ " $1 " ]]; then
-            echo "Unknown action."
-        else
-            echo "Action not selected."
-        fi
-
-        echo "Available actions:"
-
-        COUNTER=1
-        for ACTION in "${AVAILABLE_ACTIONS[@]}"; do
-            echo "$COUNTER. $ACTION"
-            ((COUNTER++))
-        done
-
-        echo -n "Enter the number corresponding to the desired action:"
-        read SELECTED_NUM
-
-        if [[ $SELECTED_NUM -ge 1 ]] && [[ $SELECTED_NUM -le ${#AVAILABLE_ACTIONS[@]} ]]; then
-            ACTION_NAME="${AVAILABLE_ACTIONS[SELECTED_NUM-1]}"
-        else
-            echo "Invalid selection. Exiting."
-            exit 1
-        fi
-    fi
-
-    echo "Selected action: $ACTION_NAME"
-    $ACTION_NAME
+    wrap-cli-command get-protocol
+    CHOSEN_OPTION=${1:-""} 
+    show-menu "$CHOSEN_OPTION" "${OPTION_N_DESCRIPTIONS[@]}"    
+    echo "Selected action: $MENU_SELECTED_OPTION"
+    $MENU_SELECTED_COMMAND
 }
 
 function pool-setup-wizard {
@@ -86,32 +64,39 @@ function pool-setup-wizard {
 
 
 function stake-key-register {
+    echo ""
     reg-stake-key
 }
 
 function stake-key-unregister {
+    echo ""
     unreg-stake-key
 }
 
 function pool-certificate-edit {
+    echo ""
     gen-pool-cert
 }
 
 function pool-certificate-submit {
+    echo ""
     reg-pool-cert
 }
 
 function pool-certificate-recall {
+    echo ""
     unreg-pool-cert
 }
 
 function pool-keys-generate {
+    echo ""
     if gen-pools-keys; then
        gen-kes-keys
     fi
 }
 
 function kes-keys-update {
+    echo ""
     gen-kes-keys
 }
 

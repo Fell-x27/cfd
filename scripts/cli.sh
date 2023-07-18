@@ -11,8 +11,8 @@ function unwrapped-cli {
         local command_output
         command_output=$(CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH \
                          $CARDANO_BINARIES_DIR/cardano-cli "${@:1}" 2>&1)
-
-        if echo "$command_output" | grep -q "Missing: (--mainnet | --testnet-magic NATURAL)"; then
+       
+        if echo "$command_output" | grep -q "(--mainnet | --testnet-magic NATURAL)"; then
             CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH \
             $CARDANO_BINARIES_DIR/cardano-cli "${@:1}" "${MAGIC[@]}"
         else

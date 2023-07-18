@@ -137,8 +137,7 @@ function check_and_compare_json() {
 
 
 function prepare_software {
-    local redirect_output
-    
+    local redirect_output    
 
     if [ "$2" == "silent" ]; then
         redirect_output=">/dev/null 2>&1"
@@ -147,7 +146,6 @@ function prepare_software {
     fi
 
     if eval software_deploy "$1" "$2" $redirect_output && eval software_config "$1" "$2" $redirect_output; then
-        echo ""
         return 0
     else
         echo "The called software is not ready to launch. Please, fix the issues before."
@@ -245,33 +243,41 @@ function software_deploy(){
         
         local DESIRED_FILES=$(echo $SF_GLOBAL_META | jq -r '.["desired-files"] | .[]')
         
-        echo "Validating $SF_NAME installation..."
-        spin &
-        spinner_pid=$!
+        if [ "$VERBOSITY" != "silent" ] && [ "$VERBOSITY" != "issues" ]; then
+            echo "Validating $SF_NAME installation..."
+            spin &
+            spinner_pid=$!
+        fi
 
-        for FILE in $(find $SF_BIN_DIR -type f); do 
+        if [ "$DESIRED_FILES" != "*" ]; then
+            FILES=$(echo "$DESIRED_FILES" | xargs -n1 -I{} find "$SF_BIN_DIR" -type f -name '{}')
+        else
+            FILES=$(find "$SF_BIN_DIR" -type f)
+        fi
+
+        for FILE in $FILES; do
             local BASENAME=$(basename $FILE)
             local OLD_LINK=$(readlink $CARDANO_BINARIES_DIR/$BASENAME)
-            local OLD_VERSION=$(get-version-from-path "$OLD_LINK" "$SF_GLOBAL_DIR")                  
-            if [ -z $OLD_VERSION ] || [ $OLD_VERSION != $DESIRED_SF_VERSION ]; then                                        
+            local OLD_VERSION=$(get-version-from-path "$OLD_LINK" "$SF_GLOBAL_DIR")
+            
+            if [ -z $OLD_VERSION ] || [ $OLD_VERSION != $DESIRED_SF_VERSION ]; then
                 if [ $(file -rb --mime-type $FILE) == "text/x-shellscript" ] || [ $(file -rb --mime-type $FILE) == "application/x-executable" ]; then
-                    chmod +x $FILE
+                    chmod +x $FILE                    
                 fi
-                if [ "$(echo "$DESIRED_FILES" | grep -w "$BASENAME")" != "" ] || [ "$(echo "$DESIRED_FILES" | grep -w "*")" != "" ]; then
-                    ln -fns $FILE $CARDANO_BINARIES_DIR/$BASENAME                    
-                fi
+                ln -fns $FILE $CARDANO_BINARIES_DIR/$BASENAME
             fi
-        done   
-        
-        kill "$spinner_pid" >/dev/null 2>&1
-        echo -ne "OK" "\r"
+        done
+       
+        if [ "$VERBOSITY" != "silent" ] && [ "$VERBOSITY" != "issues" ]; then
+            kill "$spinner_pid" >/dev/null 2>&1
+            echo -ne "OK" "\r"
+        fi
         
     else
         if [ "$VERBOSITY" != "silent" ] && [ "$VERBOSITY" != "issues" ]; then
             echo "$SF_NAME is not required"
         fi
-    fi
-            
+    fi   
     return 0
 }
 
@@ -283,8 +289,7 @@ function recursive-config-linking {
     local LINKS_DIR=$5
     
 
-    for SUBJECT in "$CONF_DIR"/*; do 
-        
+    for SUBJECT in "$CONF_DIR"/*; do         
     
         local BASENAME=$(basename "$SUBJECT")                
         local LINK_CONF_SUBJECT=$LINKS_DIR/$BASENAME
@@ -301,22 +306,26 @@ function recursive-config-linking {
 
         local OLD_VERSION=$(get-version-from-path "$OLD_USER_CONF_SUBJECT" "$SF_GLOBAL_DIR")  
         
-        ln -fns "$NEW_USER_CONF_SUBJECT" "$LINK_CONF_SUBJECT" 
+        
         
         if [ ! -e "$NEW_USER_CONF_SUBJECT" ]; then
             cp -r "$NEW_DEF_CONF_SUBJECT" "$NEW_USER_CONF_SUBJECT"
-        fi       
+        fi
         
-        if [ -f "$SUBJECT" ]; then
+                if [ ! -e "$LINK_CONF_SUBJECT" ]; then
+                ln -fns "$NEW_USER_CONF_SUBJECT" "$LINK_CONF_SUBJECT" 
+            fi       
+        
+        if [ -f "$SUBJECT" ]; then        
+            if [ -n "$OLD_VERSION" ] && [ "$OLD_VERSION" != "$DESIRED_SF_VERSION" ] && [ -e "$OLD_USER_CONF_SUBJECT" ] && jq -e . >/dev/null 2>&1 < "$NEW_DEF_CONF_SUBJECT"; then                           
+                check_and_compare_json "$OLD_DEF_CONF_SUBJECT" "$NEW_DEF_CONF_SUBJECT" "$OLD_USER_CONF_SUBJECT" "$NEW_USER_CONF_SUBJECT"
+                
             if [ $(file -rbL --mime-type "$NEW_DEF_CONF_SUBJECT") == "text/x-shellscript" ] || [ $(file -rbL --mime-type "$NEW_DEF_CONF_SUBJECT") == "application/x-executable" ]; then
                 chmod +x "$SUBJECT"
                 chmod +x "$LINK_CONF_SUBJECT"
-            fi        
-                                 
-            
-            if [ -n "$OLD_VERSION" ] && [ "$OLD_VERSION" != "$DESIRED_SF_VERSION" ] && [ -e "$OLD_USER_CONF_SUBJECT" ] && jq -e . >/dev/null 2>&1 < "$NEW_DEF_CONF_SUBJECT"; then           
-                check_and_compare_json "$OLD_DEF_CONF_SUBJECT" "$NEW_DEF_CONF_SUBJECT" "$OLD_USER_CONF_SUBJECT" "$NEW_USER_CONF_SUBJECT"
-            fi  
+            fi 
+                
+            fi              
         elif [ -d "$SUBJECT" ]; then
             recursive-config-linking $SUBJECT $SF_CONF_DIR_USER $DESIRED_SF_VERSION $SF_GLOBAL_DIR $LINKS_DIR/$BASENAME      
         fi  
@@ -330,6 +339,7 @@ function software_config() {
     local VERBOSITY=${2:-"all"}
     local SF_GLOBAL_META=$(from-config ".global.software.\"${SF_NAME}\"")
     local SF_LOCAL_META=$(from-config ".networks.\"${NETWORK_NAME}\".software.\"${SF_NAME}\"")
+    local RELINK_NEEDED=0
     
     if ! [ "$SF_LOCAL_META" == null ]; then
         local DESIRED_SF_VERSION=$(get-sf-version $SF_NAME)
@@ -421,7 +431,6 @@ function software_config() {
     fi
 
     recursive-config-linking $SF_CONF_DIR_DEF $SF_CONF_DIR_USER $DESIRED_SF_VERSION $SF_GLOBAL_DIR $CARDANO_CONFIG_DIR
-
     return 0
 }
 
