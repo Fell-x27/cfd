@@ -50,7 +50,7 @@ function run_cardano_pool {
 
 function run_cardano_db_sync {
     if prepare_software "cardano-db-sync"; then
-        output=$("$(dirname "$0")/cardano.sh" $NETWORK_NAME database-manager check)                
+        output=$("$(dirname "$0")/cardano.sh" ${NETWORK_NAME} database-manager check)                
         
        
         if echo "$output" | grep -q "All good!"; then
@@ -78,7 +78,7 @@ function run_cardano_db_sync {
             echo ""
         elif echo "$output" | grep -qE "Error : No '.*' database"; then
             echo "The database does not exist, trying to fix..."
-            output=$("$(dirname "$0")/cardano.sh" preprod database-manager createdb 2>/dev/null)
+            output=$("$(dirname "$0")/cardano.sh" ${NETWORK_NAME} database-manager createdb 2>/dev/null)
             if echo "$output" | grep -q "All good!"; then            
                 echo "Ok, looks good, let's start it again!"                
                 run_cardano_db_sync
