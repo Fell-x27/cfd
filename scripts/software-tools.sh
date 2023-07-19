@@ -306,25 +306,20 @@ function recursive-config-linking {
 
         local OLD_VERSION=$(get-version-from-path "$OLD_USER_CONF_SUBJECT" "$SF_GLOBAL_DIR")  
         
-        
+        ln -fns "$NEW_USER_CONF_SUBJECT" "$LINK_CONF_SUBJECT"         
         
         if [ ! -e "$NEW_USER_CONF_SUBJECT" ]; then
             cp -r "$NEW_DEF_CONF_SUBJECT" "$NEW_USER_CONF_SUBJECT"
         fi
-        
-                if [ ! -e "$LINK_CONF_SUBJECT" ]; then
-                ln -fns "$NEW_USER_CONF_SUBJECT" "$LINK_CONF_SUBJECT" 
-            fi       
-        
+
         if [ -f "$SUBJECT" ]; then        
-            if [ -n "$OLD_VERSION" ] && [ "$OLD_VERSION" != "$DESIRED_SF_VERSION" ] && [ -e "$OLD_USER_CONF_SUBJECT" ] && jq -e . >/dev/null 2>&1 < "$NEW_DEF_CONF_SUBJECT"; then                           
-                check_and_compare_json "$OLD_DEF_CONF_SUBJECT" "$NEW_DEF_CONF_SUBJECT" "$OLD_USER_CONF_SUBJECT" "$NEW_USER_CONF_SUBJECT"
-                
             if [ $(file -rbL --mime-type "$NEW_DEF_CONF_SUBJECT") == "text/x-shellscript" ] || [ $(file -rbL --mime-type "$NEW_DEF_CONF_SUBJECT") == "application/x-executable" ]; then
                 chmod +x "$SUBJECT"
                 chmod +x "$LINK_CONF_SUBJECT"
-            fi 
-                
+            fi
+        
+            if [ -n "$OLD_VERSION" ] && [ "$OLD_VERSION" != "$DESIRED_SF_VERSION" ] && [ -e "$OLD_USER_CONF_SUBJECT" ] && jq -e . >/dev/null 2>&1 < "$NEW_DEF_CONF_SUBJECT"; then                           
+                check_and_compare_json "$OLD_DEF_CONF_SUBJECT" "$NEW_DEF_CONF_SUBJECT" "$OLD_USER_CONF_SUBJECT" "$NEW_USER_CONF_SUBJECT"
             fi              
         elif [ -d "$SUBJECT" ]; then
             recursive-config-linking $SUBJECT $SF_CONF_DIR_USER $DESIRED_SF_VERSION $SF_GLOBAL_DIR $LINKS_DIR/$BASENAME      
