@@ -12,7 +12,9 @@
                 "name-format": "cardano-node-#-linux.tar.gz",
                 "path": "",
                 "desired-files": [
-                    "*"
+                    "cardano-node",
+	            "cardano-cli",
+		    "cardano-submit-api"
                 ],
                 "required-files": [
                     "config.json",
