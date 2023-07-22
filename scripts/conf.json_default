@@ -106,7 +106,7 @@
                     "version": "3.12.0"
                 },
                 "cardano-wallet": {
-                    "version": "v2023-04-14",
+                    "version": "v2023-07-18",
                     "cardano-wallet-port": "8100"
                 }
             }
@@ -142,7 +142,7 @@
                     "version": "3.12.0"
                 },
                 "cardano-wallet": {
-                    "version": "v2023-04-14",
+                    "version": "v2023-07-18",
                     "cardano-wallet-port": "8101"
                 }
             }
@@ -178,7 +178,7 @@
                     "version": "3.12.0"
                 },
                 "cardano-wallet": {
-                    "version": "v2023-04-14",
+                    "version": "v2023-07-18",
                     "cardano-wallet-port": "8102"
                 }
             }
