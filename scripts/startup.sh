@@ -9,7 +9,7 @@ source "$(dirname "$0")/scripts/software-tools.sh"
 source "$(dirname "$0")/scripts/wallet-tools.sh"
 source "$(dirname "$0")/scripts/pool-tools.sh"
 
-for cmd in jq tar wget awk nano; do
+for cmd in bc jq tar wget awk nano; do
   if ! command -v $cmd &> /dev/null; then
       echo "Error: $cmd is not installed. Please install it and try again."
       exit 1
