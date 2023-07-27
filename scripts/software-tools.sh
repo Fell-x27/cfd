@@ -250,7 +250,7 @@ function software_deploy(){
         fi
 
         if [ "$DESIRED_FILES" != "*" ]; then
-            FILES=$(echo "$DESIRED_FILES" | xargs -n1 -I{} find "$SF_BIN_DIR" -type f -name '{}')
+            FILES=$(echo "$DESIRED_FILES" | xargs -I{} find "$SF_BIN_DIR" -type f -name '{}')
         else
             FILES=$(find "$SF_BIN_DIR" -type f)
         fi
