@@ -29,7 +29,7 @@ function run-software {
     show-menu "$CHOSEN_OPTION" "${OPTION_N_DESCRIPTIONS[@]}"
     
     echo "Selected software: $MENU_SELECTED_OPTION"
-    $MENU_SELECTED_COMMAND
+    $MENU_SELECTED_COMMAND "${@:2}"
 }
 
 

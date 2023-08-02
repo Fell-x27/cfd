@@ -29,7 +29,8 @@
             },
             "cardano-db-sync": {
                 "download-links": [
-                    "https://update-cardano-mainnet.iohk.io/cardano-db-sync/"
+                    "https://update-cardano-mainnet.iohk.io/cardano-db-sync/",
+                    "https://github.com/input-output-hk/cardano-db-sync/releases/download/#/"
                 ],
                 "name-format": "cardano-db-sync-#-linux.tar.gz",
                 "path": "",

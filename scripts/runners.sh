@@ -59,7 +59,8 @@ function run_cardano_db_sync {
                 --config $CARDANO_CONFIG_DIR/db-sync-config.json \
                 --socket-path $CARDANO_SOCKET_PATH \
                 --state-dir $CARDANO_STORAGE_DIR/db_sync/ \
-                --schema-dir $CARDANO_CONFIG_DIR/schema/
+                --schema-dir $CARDANO_CONFIG_DIR/schema/ \
+                "${@:1}"
         elif 
             echo "$output" | grep -qE "Error : User '.*' can't access postgres"; then
             echo ""    
@@ -81,7 +82,7 @@ function run_cardano_db_sync {
             output=$("$(dirname "$0")/cardano.sh" ${NETWORK_NAME} database-manager createdb 2>/dev/null)
             if echo "$output" | grep -q "All good!"; then            
                 echo "Ok, looks good, let's start it again!"                
-                run_cardano_db_sync
+                run_cardano_db_sync "${@:1}"
             fi
         else
             echo "$output"
