@@ -27,12 +27,13 @@ function check-db-sync-state {
     local PGPASS_FILE=$1
     local PORT=$(cut -d ':' -f 2 $PGPASS_FILE)
 
-    if netstat -tuln | grep $PORT >/dev/null; then
-        echo "Port $PORT is active. PostgreSQL might be running."
+    if pg_isready -p $PORT >/dev/null 2>&1; then
+        echo "Port $PORT is active. PostgreSQL is running."
     else
         echo -e "${BOLD}${WHITE_ON_RED} ERROR: ${NORMAL} Port $PORT is not active. PostgreSQL might not be installed or running."
         exit 1
     fi
+
 }
 
 function get-protocol {
