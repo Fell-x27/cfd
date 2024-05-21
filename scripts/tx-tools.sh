@@ -26,7 +26,7 @@ function build-tx {
     shift 2
     
     if [ $DEPOSIT -gt 0 ]; then
-        MIN_UTXO=$(expr $DEPOSIT + 2000000)
+        MIN_UTXO=$(expr $DEPOSIT + $MIN_UTXO)
     fi    
 
     local CERTIFICATES=("$@")
@@ -73,8 +73,8 @@ function build-tx {
 
     local FEE=($($CARDANO_BINARIES_DIR/cardano-cli transaction calculate-min-fee \
      --protocol-params-file $CARDANO_CONFIG_DIR/protocol.json  \
-     --tx-in-count 1 \
-     --tx-out-count 1 \
+     --tx-in-count 2 \
+     --tx-out-count 2 \
      --witness-count 2 \
      --tx-body-file $CARDANO_KEYS_DIR/$TX_NAME.raw \
     "${MAGIC[@]}"     
