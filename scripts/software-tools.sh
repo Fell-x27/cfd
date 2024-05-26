@@ -186,6 +186,8 @@ function software_deploy(){
     
     if ! [ "$SF_LOCAL_META" == null ]; then
         local DESIRED_SF_VERSION=$(get-sf-version $SF_NAME)
+        DESIRED_SF_VERSION_BASE=$(echo $DESIRED_SF_VERSION | awk -F'-' '{print $1}')
+        DESIRED_SF_VERSION_SUFFIX=$(echo $DESIRED_SF_VERSION | awk -F'-' '{print "-"$2}')
         
         local SF_GLOBAL_DIR=$CARDANO_SOFTWARE_DIR/$SF_NAME
         local SF_LOCAL_DIR=$SF_GLOBAL_DIR/$DESIRED_SF_VERSION
@@ -213,10 +215,10 @@ function software_deploy(){
             mkdir -p $SF_BIN_DIR  
             
             local TARGZ_NAME=$(echo $SF_GLOBAL_META | jq -r '."name-format"')
-            TARGZ_NAME=$(replace-placeholders "$TARGZ_NAME" "$DESIRED_SF_VERSION" "$NETWORK_NAME")
+            TARGZ_NAME=$(replace-placeholders "$TARGZ_NAME" "$DESIRED_SF_VERSION_BASE" "$NETWORK_NAME")
 
             local DOWNLOAD_LINKS_RAW=$(echo $SF_GLOBAL_META | jq -r '."download-links"[]')
-                      
+
 
             for LINK in $DOWNLOAD_LINKS_RAW; do
                 DOWNLOAD_LINK=$(replace-placeholders "$LINK" "$DESIRED_SF_VERSION" "$NETWORK_NAME")$TARGZ_NAME
@@ -338,7 +340,9 @@ function software_config() {
     
     if ! [ "$SF_LOCAL_META" == null ]; then
         local DESIRED_SF_VERSION=$(get-sf-version $SF_NAME)
-    
+        DESIRED_SF_VERSION_BASE=$(echo $DESIRED_SF_VERSION | awk -F'-' '{print $1}')
+        DESIRED_SF_VERSION_SUFFIX=$(echo $DESIRED_SF_VERSION | awk -F'-' '{print "-"$2}')
+
         local SF_GLOBAL_DIR=$CARDANO_SOFTWARE_DIR/$SF_NAME
         local SF_LOCAL_DIR=$SF_GLOBAL_DIR/$DESIRED_SF_VERSION
         local SF_CONF_DIR_DEF=$SF_LOCAL_DIR/default_configs/$NETWORK_NAME
@@ -383,8 +387,13 @@ function software_config() {
 
                 local FILE_RULE=$(echo $SF_LOCAL_META | jq -r ".\"required-files\".\"${REQ_FILE_NAME}\"")    
 
-                FILE_RULE=$(echo "$FILE_RULE" | sed "s/#/${DESIRED_SF_VERSION}/g")
-                FILE_RULE=$(echo "$FILE_RULE" | sed "s/%/${NETWORK_NAME}/g")
+                FILE_RULE=$(echo "$FILE_RULE" | awk -v base="$DESIRED_SF_VERSION_BASE" -v network="$NETWORK_NAME" -v suffix="$DESIRED_SF_VERSION_SUFFIX" '{
+                    gsub(/#/, base);
+                    gsub(/%/, network);
+                    gsub(/\^/, suffix);
+                    print
+                }')
+
                 local FILE_RULE=($FILE_RULE)
                                 
                 case ${FILE_RULE[0]} in

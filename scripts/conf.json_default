@@ -6,11 +6,12 @@
             "cardano-node": {
                 "download-links": [
                     "https://s3.ap-southeast-1.amazonaws.com/update-cardano-mainnet.iohk.io/cardano-node-releases/",
+                    "https://github.com/IntersectMBO/cardano-node/releases/download/#/",
                     "https://github.com/input-output-hk/cardano-node/releases/download/#/",
                     "https://update-cardano-mainnet.iohk.io/cardano-node-releases/"
                 ],
                 "name-format": "cardano-node-#-linux.tar.gz",
-                "path": "",
+                "path": "bin/",
                 "desired-files": [
                     "cardano-node",
 	            "cardano-cli",
