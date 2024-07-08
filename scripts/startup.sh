@@ -9,12 +9,21 @@ source "$(dirname "$0")/scripts/software-tools.sh"
 source "$(dirname "$0")/scripts/wallet-tools.sh"
 source "$(dirname "$0")/scripts/pool-tools.sh"
 
-for cmd in bc jq tar wget awk nano; do
+missing_packages=()
+
+for cmd in bc jq tar wget awk nano file curl; do
   if ! command -v $cmd &> /dev/null; then
-      echo "Error: $cmd is not installed. Please install it and try again."
-      exit 1
+    missing_packages+=($cmd)
   fi
 done
+
+if [ ${#missing_packages[@]} -ne 0 ]; then
+  echo "Error: The following packages are not installed: ${missing_packages[@]}"
+  echo "Please install them and try again."
+  exit 1
+else
+  echo "All required packages are installed."
+fi
 
 
 CONFIG_FILE="conf.json"
