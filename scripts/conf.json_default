@@ -81,7 +81,7 @@
             "description": "The Cardano Production network. Slot = 1 sec. Epoch = 5 days;",
             "software": {
                 "cardano-node": {
-                    "version": "8.12.1",
+                    "version": "9.0.0",
                     "node-port": "5001",
                     "submit-api-port": "8999",
                     "required-files": {
@@ -95,7 +95,7 @@
                     }
                 },
                 "cardano-db-sync": {
-                    "version": "13.1.0.2",
+                    "version": "13.3.0.0",
                     "required-files": {
                         "db-sync-config.json": "d https://book.world.dev.cardano.org/environments^/%/db-sync-config.json",
                         "postgresql-setup.sh": "d https://raw.githubusercontent.com/input-output-hk/cardano-db-sync/#/scripts/postgresql-setup.sh",
@@ -108,7 +108,7 @@
                     "version": "3.12.0"
                 },
                 "cardano-wallet": {
-                    "version": "v2023-07-18",
+                    "version": "v2024-07-19",
                     "cardano-wallet-port": "8100"
                 }
             }
@@ -117,7 +117,7 @@
             "description": "The Cardano Preproduction test network. Slot = 1 sec. Epoch = 5 days;",
             "software": {
                 "cardano-node": {
-                    "version": "8.12.1",
+                    "version": "9.0.0",
                     "node-port": "5002",
                     "submit-api-port": "8998",
                     "required-files": {
@@ -131,7 +131,7 @@
                     }
                 },
                 "cardano-db-sync": {
-                    "version": "13.1.0.2",
+                    "version": "13.3.0.0",
                     "required-files": {
                         "db-sync-config.json": "d https://book.world.dev.cardano.org/environments^/%/db-sync-config.json",
                         "postgresql-setup.sh": "d https://raw.githubusercontent.com/input-output-hk/cardano-db-sync/#/scripts/postgresql-setup.sh",
@@ -144,7 +144,7 @@
                     "version": "3.12.0"
                 },
                 "cardano-wallet": {
-                    "version": "v2023-07-18",
+                    "version": "v2024-07-19",
                     "cardano-wallet-port": "8101"
                 }
             }
@@ -153,7 +153,7 @@
             "description": "The Cardano Preview test network. Fast epochs, fast testing! Slot = 1 sec. Epoch = 1 day;",
             "software": {
                 "cardano-node": {
-                    "version": "8.12.1",
+                    "version": "9.0.0",
                     "node-port": "5003",
                     "submit-api-port": "8997",
                     "required-files": {
@@ -167,7 +167,7 @@
                     }
                 },
                 "cardano-db-sync": {
-                    "version": "13.1.0.2",
+                    "version": "13.3.0.0",
                     "required-files": {
                         "db-sync-config.json": "d https://book.world.dev.cardano.org/environments^/%/db-sync-config.json",
                         "postgresql-setup.sh": "d https://raw.githubusercontent.com/input-output-hk/cardano-db-sync/#/scripts/postgresql-setup.sh",
@@ -180,7 +180,7 @@
                     "version": "3.12.0"
                 },
                 "cardano-wallet": {
-                    "version": "v2023-07-18",
+                    "version": "v2024-07-19",
                     "cardano-wallet-port": "8102"
                 }
             }
