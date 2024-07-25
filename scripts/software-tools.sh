@@ -86,8 +86,8 @@ function check_and_compare_json() {
     local NEW_DEF_JSON_FILE=$2
     local OLD_USER_JSON_FILE=$3
     local NEW_USER_JSON_FILE=$4
-    local FILE_NAME=$(basename $OLD_DEF_JSON_FILE)
-    echo "Checking for conflicts..."
+    local FILE_NAME=$(basename $OLD_DEF_JSON_FILE)    
+    echo "$FILE_NAME...checking for conflicts..."
     
     local OLD_DEF_JSON=$(jq '.' $OLD_DEF_JSON_FILE)
     local NEW_DEF_JSON=$(jq '.' $NEW_DEF_JSON_FILE)
