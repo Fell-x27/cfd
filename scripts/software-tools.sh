@@ -180,17 +180,7 @@ function check_and_compare_json() {
     local OLD_USER_JSON=$(jq '.' "$OLD_USER_JSON_FILE")
     local NEW_USER_JSON=$(jq '.' "$NEW_USER_JSON_FILE")
 
-    echo "looking for local changes"
-    USER_CHANGES=$(compare_json_recursive "$OLD_DEF_JSON" "$OLD_USER_JSON" "" "")
-    if [ -n "$USER_CHANGES" ]; then
-        echo ""
-        visualize_diff "$USER_CHANGES"
-        echo -n "applying..."
-        NEW_USER_JSON=$(apply_diff "$USER_CHANGES" "$NEW_USER_JSON")
-        echo "done!"
-    fi
-    echo ""
-    echo "looking for global changes"
+    echo "looking for changes"
     DEF_CHANGES=$(compare_json_recursive "$OLD_DEF_JSON" "$NEW_DEF_JSON" "" "")
     if [ -n "$DEF_CHANGES" ]; then
         echo ""
@@ -198,11 +188,12 @@ function check_and_compare_json() {
         echo -n "applying..."        
         NEW_USER_JSON=$(apply_diff "$DEF_CHANGES" "$NEW_USER_JSON")
         echo  "done!"
+    else
+        echo ""
     fi
     
 
-    echo "$NEW_USER_JSON" | jq -c '.' > tmp.json && mv tmp.json "$NEW_USER_JSON_FILE"
-    echo ""
+    echo "$NEW_USER_JSON" | jq '.' > tmp.json && mv tmp.json "$NEW_USER_JSON_FILE"                              
 }
 
 
@@ -382,7 +373,7 @@ function recursive-config-linking {
         ln -fns "$NEW_USER_CONF_SUBJECT" "$LINK_CONF_SUBJECT"         
         
         if [ ! -e "$NEW_USER_CONF_SUBJECT" ]; then
-            cp -r "$NEW_DEF_CONF_SUBJECT" "$NEW_USER_CONF_SUBJECT"
+            cp -r "$OLD_USER_CONF_SUBJECT" "$NEW_USER_CONF_SUBJECT"
         fi
 
         if [ -f "$SUBJECT" ]; then        
