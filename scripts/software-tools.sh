@@ -1,139 +1,210 @@
-declare -a DIFF_BUFFER
-declare -a CHANGES_BUFFER
-
 function compare_json_recursive() {
-    local OLD_DEF_JSON=$1
-    local NEW_DEF_JSON=$2
-    local OLD_USER_JSON=$3
-    local SELECTOR=$4
+    local JSON1_JSON=$1
+    local JSON2_JSON=$2
+    local SELECTOR=$3
+    local CHANGES_BUFFER=$4
     
-    local OLD_DEF_VALUE
-    local NEW_DEF_VALUE
-    local OLD_USER_VALUE
-    local JSON_TYPE  
-    local IS_COMPLEX
+    local JSON1_VALUE
+    local JSON2_VALUE
+    local JSON_TYPE
     
-    JSON_TYPE=$(echo $OLD_DEF_JSON | jq -r 'type')
+    JSON_TYPE=$(echo $JSON2_JSON | jq -r 'type' 2>/dev/null)
+
+    echo -n "*" >&2
+
     if [ "$JSON_TYPE" == "object" ] || [ "$JSON_TYPE" == "array" ]; then
-        IS_COMPLEX=1
-    else
-        IS_COMPLEX=0
-    fi
+        local JSON1_KEYS=""
+        local JSON2_KEYS=""
 
-    if [ $IS_COMPLEX -eq 1 ]; then    
-        local OLD_DEF_KEYS=$(echo $OLD_DEF_JSON | jq -r 'keys[]')
-        local NEW_DEF_KEYS=$(echo $NEW_DEF_JSON | jq -r 'keys[]')
-        local OLD_USER_KEYS=$(echo $OLD_USER_JSON | jq -r 'keys[]')
+        if [ "$(echo $JSON1_JSON | jq -r 'type' 2>/dev/null)" == "object" ] || [ "$(echo $JSON1_JSON | jq -r 'type' 2>/dev/null)" == "array" ]; then
+            JSON1_KEYS=$(echo $JSON1_JSON | jq -r 'keys[]' 2>/dev/null)
+        fi
+
+        if [ "$JSON_TYPE" == "object" ] || [ "$JSON_TYPE" == "array" ]; then
+            JSON2_KEYS=$(echo $JSON2_JSON | jq -r 'keys[]' 2>/dev/null)
+        fi
         
-        local OLD_DEF_COUNT=$(echo $OLD_DEF_KEYS | wc -w)
-        local NEW_DEF_COUNT=$(echo $NEW_DEF_KEYS | wc -w)
-            
-        if [ $OLD_DEF_COUNT -ne $NEW_DEF_COUNT ]; then
-            DIFF_BUFFER+=("$SELECTOR: The new file has $NEW_DEF_COUNT nodes compared to $OLD_DEF_COUNT in the old file.\n\n")       
-        fi    
-
-        for KEY in $OLD_DEF_KEYS; do
-            if ! echo $NEW_DEF_KEYS | grep -q -w $KEY; then
-                
-                DIFF_BUFFER+=("$SELECTOR/$KEY is not present in new configuration.\n\n")
-            fi
-        done
+        # Combine keys from both JSONs
+        local ALL_KEYS=$(echo -e "$JSON1_KEYS\n$JSON2_KEYS" | sort | uniq)
         
-        for KEY in $NEW_DEF_KEYS; do
-            if ! echo $OLD_DEF_KEYS | grep -q -w $KEY; then
-                DIFF_BUFFER+=("$SELECTOR/$KEY was added in new configuration.\n\n")           
-            fi    
-
+        for KEY in $ALL_KEYS; do
             if [ "$JSON_TYPE" == "object" ]; then
-                local KEY_ESCAPED='"'$KEY'"'
+                local KEY_ESCAPED="\"${KEY}\""
             elif [ "$JSON_TYPE" == "array" ]; then
                 local KEY_ESCAPED="[$KEY]"
             fi
-            
-            
-            
-            OLD_DEF_VALUE=$(echo $OLD_DEF_JSON | jq ".$KEY_ESCAPED")
-            NEW_DEF_VALUE=$(echo $NEW_DEF_JSON | jq ".$KEY_ESCAPED")
-            OLD_USER_VALUE=$(echo $OLD_USER_JSON | jq ".$KEY_ESCAPED")
 
-            echo -n "."
-           
-            if [ "$OLD_DEF_VALUE" != "$NEW_DEF_VALUE" ] || [ "$OLD_DEF_VALUE" != "$OLD_USER_VALUE" ]; then
-                compare_json_recursive "$OLD_DEF_VALUE" "$NEW_DEF_VALUE" "$OLD_USER_VALUE" "$SELECTOR.$KEY_ESCAPED"                
+            JSON1_VALUE=$(echo $JSON1_JSON | jq ".$KEY_ESCAPED" 2>/dev/null)
+            JSON2_VALUE=$(echo $JSON2_JSON | jq ".$KEY_ESCAPED" 2>/dev/null)
+
+            echo -n "." >&2
+            
+            local VALUE_TYPE_JSON1=$(echo $JSON1_VALUE | jq -r 'type' 2>/dev/null)
+            local VALUE_TYPE_JSON2=$(echo $JSON2_VALUE | jq -r 'type' 2>/dev/null)
+            
+            if [ "$VALUE_TYPE_JSON1" == "object" ] || [ "$VALUE_TYPE_JSON1" == "array" ] || [ "$VALUE_TYPE_JSON2" == "object" ] || [ "$VALUE_TYPE_JSON2" == "array" ]; then
+                local TEMP_BUFFER
+                TEMP_BUFFER=$(compare_json_recursive "$JSON1_VALUE" "$JSON2_VALUE" "$SELECTOR.$KEY_ESCAPED" "")
+                if [ -n "$TEMP_BUFFER" ]; then
+                    CHANGES_BUFFER+="${TEMP_BUFFER}\n"
+                fi
+            else
+                if [ "$JSON1_VALUE" != "$JSON2_VALUE" ]; then
+                    echo -n "!" >&2
+                    if [ "$JSON1_VALUE" == "null" ] && [ "$VALUE_TYPE_JSON2" != "null" ]; then
+                        # Key is only in JSON2
+                        CHANGES_BUFFER+="+${SELECTOR}.${KEY_ESCAPED}%|#${JSON2_VALUE}\n"
+                    elif [ "$JSON2_VALUE" == "null" ] && [ "$VALUE_TYPE_JSON1" != "null" ]; then
+                        # Key is only in JSON1
+                        CHANGES_BUFFER+="-${SELECTOR}.${KEY_ESCAPED}\n"
+                    else
+                        # Key is in both, but values are different
+                        CHANGES_BUFFER+="^${SELECTOR}.${KEY_ESCAPED}%|#${JSON2_VALUE}\n"
+                    fi
+                fi
             fi
-           
         done
     else    
-        OLD_DEF_VALUE=$OLD_DEF_JSON
-        NEW_DEF_VALUE=$NEW_DEF_JSON
-        OLD_USER_VALUE=$OLD_USER_JSON        
-       
-        if [ "$OLD_DEF_VALUE" != "$NEW_DEF_VALUE" ]; then
-            DIFF_BUFFER+=("$SELECTOR has changed from default $OLD_DEF_VALUE to default $NEW_DEF_VALUE.\n\n")          
-        fi       
+        JSON1_VALUE=$JSON1_JSON
+        JSON2_VALUE=$JSON2_JSON        
+        local VALUE_TYPE_JSON1=$(echo $JSON1_VALUE | jq -r 'type' 2>/dev/null)
+        local VALUE_TYPE_JSON2=$(echo $JSON2_VALUE | jq -r 'type' 2>/dev/null)
 
-        
-        if [ "$OLD_DEF_VALUE" != "$OLD_USER_VALUE" ]; then
-            DIFF_BUFFER+=("$SELECTOR has changed custom $OLD_USER_VALUE.\n\n")          
-            CHANGES_BUFFER+=("${SELECTOR}%|#${OLD_USER_VALUE}")
+        if [ "$JSON1_VALUE" != "$JSON2_VALUE" ]; then
+            echo -n "!" >&2
+            if [ "$JSON1_VALUE" == "null" ] && [ "$VALUE_TYPE_JSON2" != "null" ]; then
+                # Key is only in JSON2
+                CHANGES_BUFFER+="+${SELECTOR}%|#${JSON2_VALUE}\n"
+            elif [ "$JSON2_VALUE" == "null" ] && [ "$VALUE_TYPE_JSON1" != "null" ]; then
+                # Key is only in JSON1
+                CHANGES_BUFFER+="-${SELECTOR}\n"
+            else
+                # Key is in both, but values are different
+                CHANGES_BUFFER+="^${SELECTOR}%|#${JSON2_VALUE}\n"
+            fi
         fi
-    fi    
+    fi
+    
+
+    CHANGES_BUFFER=$(echo -e "$CHANGES_BUFFER" | sed '/^$/d')
+    
+    echo -e "$CHANGES_BUFFER"
 }
 
+
+
+function apply_diff() {
+    local DIFF_TEXT="$1"
+    local JSON_INPUT="$2"
+
+    IFS=$'\n' read -d '' -r -a DIFF_LINES <<< "$DIFF_TEXT"
+
+
+    local UPDATED_JSON="$JSON_INPUT"
+
+
+    for DIFF_LINE in "${DIFF_LINES[@]}"; do
+        local ACTION="${DIFF_LINE:0:1}"
+        local JPATH="${DIFF_LINE:1}"
+        local KEY_PATH="${JPATH%%"%|#"*}"
+        local VALUE="${JPATH#*"%|#"*}"
+
+        KEY_PATH=$(echo "$KEY_PATH" | sed 's/\.\[/[/g')
+
+        case "$ACTION" in
+            +)
+                UPDATED_JSON=$(echo "$UPDATED_JSON" | jq "$KEY_PATH = $VALUE")
+                ;;
+            ^)
+                UPDATED_JSON=$(echo "$UPDATED_JSON" | jq "$KEY_PATH = $VALUE")
+                ;;
+            -)
+                UPDATED_JSON=$(echo "$UPDATED_JSON" | jq "del($KEY_PATH)")
+                ;;
+        esac
+    done
+    
+    echo "$UPDATED_JSON"
+}
+
+
+function visualize_diff() {
+    local DIFF_TEXT="$1"
+    
+
+    local ADD_MARKER="\e[32m●\e[0m"    
+    local CHANGE_MARKER="\e[33m●\e[0m" 
+    local REMOVE_MARKER="\e[31m●\e[0m" 
+
+
+    IFS=$'\n' read -d '' -r -a DIFF_LINES <<< "$DIFF_TEXT"
+
+
+    for DIFF_LINE in "${DIFF_LINES[@]}"; do
+        local ACTION="${DIFF_LINE:0:1}"
+        local JPATH="${DIFF_LINE:1}"
+        local KEY_PATH="${JPATH%%"%|#"*}"
+        local VALUE="${JPATH#*"%|#"*}"
+
+
+        READABLE_PATH=$(echo "$KEY_PATH" | sed 's/\./\//g')
+        READABLE_PATH=$(echo "$READABLE_PATH" | sed 's/\"//g')
+        READABLE_PATH=$(echo "$READABLE_PATH" | sed 's/\[//g; s/\]//g')
+
+
+        case "$ACTION" in
+            +)
+                echo -e "${ADD_MARKER} ${READABLE_PATH} was added with value <${VALUE}>"
+                ;;
+            ^)
+                echo -e "${CHANGE_MARKER} ${READABLE_PATH} was changed to <${VALUE}>"
+                ;;
+            -)
+                echo -e "${REMOVE_MARKER} ${READABLE_PATH} was removed"
+                ;;
+        esac
+    done
+}
 
 function check_and_compare_json() {
     local OLD_DEF_JSON_FILE=$1
     local NEW_DEF_JSON_FILE=$2
     local OLD_USER_JSON_FILE=$3
     local NEW_USER_JSON_FILE=$4
-    local FILE_NAME=$(basename $OLD_DEF_JSON_FILE)    
-    echo "$FILE_NAME...checking for conflicts..."
+    local FILE_NAME=$(basename "$OLD_DEF_JSON_FILE")
+    echo ""    
+    echo "Checking $FILE_NAME"
     
-    local OLD_DEF_JSON=$(jq '.' $OLD_DEF_JSON_FILE)
-    local NEW_DEF_JSON=$(jq '.' $NEW_DEF_JSON_FILE)
-    local OLD_USER_JSON=$(jq '.' $OLD_USER_JSON_FILE)
-    local NEW_USER_JSON=$(jq '.' $NEW_USER_JSON_FILE)
-    
+    local OLD_DEF_JSON=$(jq '.' "$OLD_DEF_JSON_FILE")
+    local NEW_DEF_JSON=$(jq '.' "$NEW_DEF_JSON_FILE")
+    local OLD_USER_JSON=$(jq '.' "$OLD_USER_JSON_FILE")
+    local NEW_USER_JSON=$(jq '.' "$NEW_USER_JSON_FILE")
 
-    compare_json_recursive "$OLD_DEF_JSON" "$NEW_DEF_JSON" "$OLD_USER_JSON" ""
-
+    echo "looking for local changes"
+    USER_CHANGES=$(compare_json_recursive "$OLD_DEF_JSON" "$OLD_USER_JSON" "" "")
+    if [ -n "$USER_CHANGES" ]; then
+        echo ""
+        visualize_diff "$USER_CHANGES"
+        echo -n "applying..."
+        NEW_USER_JSON=$(apply_diff "$USER_CHANGES" "$NEW_USER_JSON")
+        echo "done!"
+    fi
     echo ""
-
-    if [ ${#DIFF_BUFFER[@]} -eq 0 ]; then
-        echo "$FILE_NAME have not changed."
-    else
-        for i in "${DIFF_BUFFER[@]}"; do
-            echo -e "$i"
-        done
+    echo "looking for global changes"
+    DEF_CHANGES=$(compare_json_recursive "$OLD_DEF_JSON" "$NEW_DEF_JSON" "" "")
+    if [ -n "$DEF_CHANGES" ]; then
+        echo ""
+        visualize_diff "$DEF_CHANGES"
+        echo -n "applying..."        
+        NEW_USER_JSON=$(apply_diff "$DEF_CHANGES" "$NEW_USER_JSON")
+        echo  "done!"
     fi
+    
 
- 
-    for CHANGE in "${CHANGES_BUFFER[@]}"; do
-        NODE_PATH=${CHANGE%%"%|#"*}
-        NEW_VALUE=${CHANGE#*"%|#"}     
-       
-        jq "$NODE_PATH = $NEW_VALUE" $NEW_USER_JSON_FILE > tmp.json && mv tmp.json $NEW_USER_JSON_FILE        
-    done
-
-
-    if [ ${#DIFF_BUFFER[@]} -ne 0 ] || [ ${#CHANGES_BUFFER[@]} -ne 0 ]; then
-        echo "It's VERY IMPORTANT to check the configuration file for any errors."
-        read -p "Do you want to open it in nano? [Y/n] " choice
-
-        choice=$(echo "$choice" | xargs)
-
-        if [ -z "$choice" ]; then
-            choice='y'
-        fi
-        case "$choice" in 
-            y|Y ) nano $NEW_USER_JSON_FILE;;
-            * ) echo "Okay, please make sure to check it later.";;
-        esac
-    fi
-
-    DIFF_BUFFER=()
-    CHANGES_BUFFER=()
+    echo "$NEW_USER_JSON" | jq -c '.' > tmp.json && mv tmp.json "$NEW_USER_JSON_FILE"
+    echo ""
 }
+
 
 
 function prepare_software {
@@ -437,4 +508,5 @@ function software_config() {
     recursive-config-linking $SF_CONF_DIR_DEF $SF_CONF_DIR_USER $DESIRED_SF_VERSION $SF_GLOBAL_DIR $CARDANO_CONFIG_DIR
     return 0
 }
+
 
