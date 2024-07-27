@@ -59,7 +59,7 @@ function compare_json_recursive() {
                         CHANGES_BUFFER+="-${SELECTOR}.${KEY_ESCAPED}\n"
                     else
                         # Key is in both, but values are different
-                        CHANGES_BUFFER+="^${SELECTOR}.${KEY_ESCAPED}%|#${JSON2_VALUE}\n"
+                        CHANGES_BUFFER+="^${SELECTOR}.${KEY_ESCAPED}%|#${JSON1_VALUE}||${JSON2_VALUE}\n"
                     fi
                 fi
             fi
@@ -80,7 +80,7 @@ function compare_json_recursive() {
                 CHANGES_BUFFER+="-${SELECTOR}\n"
             else
                 # Key is in both, but values are different
-                CHANGES_BUFFER+="^${SELECTOR}%|#${JSON2_VALUE}\n"
+                CHANGES_BUFFER+="^${SELECTOR}%|#${JSON1_VALUE}||${JSON2_VALUE}\n"
             fi
         fi
     fi
@@ -116,7 +116,8 @@ function apply_diff() {
                 UPDATED_JSON=$(echo "$UPDATED_JSON" | jq "$KEY_PATH = $VALUE")
                 ;;
             ^)
-                UPDATED_JSON=$(echo "$UPDATED_JSON" | jq "$KEY_PATH = $VALUE")
+                NEW_VAL=${VALUE#*||}
+                UPDATED_JSON=$(echo "$UPDATED_JSON" | jq "$KEY_PATH = $NEW_VAL")
                 ;;
             -)
                 UPDATED_JSON=$(echo "$UPDATED_JSON" | jq "del($KEY_PATH)")
@@ -126,7 +127,6 @@ function apply_diff() {
     
     echo "$UPDATED_JSON"
 }
-
 
 function visualize_diff() {
     local DIFF_TEXT="$1"
@@ -157,7 +157,9 @@ function visualize_diff() {
                 echo -e "${ADD_MARKER} ${READABLE_PATH} was added with value <${VALUE}>"
                 ;;
             ^)
-                echo -e "${CHANGE_MARKER} ${READABLE_PATH} was changed to <${VALUE}>"
+                OLD_VAL=${VALUE%%||*}
+                NEW_VAL=${VALUE#*||}
+                echo -e "${CHANGE_MARKER} ${READABLE_PATH} was changed from <${OLD_VAL}> to <${NEW_VAL}>"
                 ;;
             -)
                 echo -e "${REMOVE_MARKER} ${READABLE_PATH} was removed"
@@ -174,13 +176,28 @@ function check_and_compare_json() {
     local FILE_NAME=$(basename "$OLD_DEF_JSON_FILE")
     echo ""    
     echo "Checking $FILE_NAME"
-    
-    local OLD_DEF_JSON=$(jq '.' "$OLD_DEF_JSON_FILE")
-    local NEW_DEF_JSON=$(jq '.' "$NEW_DEF_JSON_FILE")
-    local OLD_USER_JSON=$(jq '.' "$OLD_USER_JSON_FILE")
-    local NEW_USER_JSON=$(jq '.' "$NEW_USER_JSON_FILE")
 
-    echo "looking for changes"
+    if [[ "$FILE_NAME" == *"-genesis.json" ]]; then
+        echo "Genesis file accepted as is."
+        cp "${NEW_DEF_JSON_FILE}" "${NEW_USER_JSON_FILE}"
+        return
+    fi
+
+    local OLD_DEF_JSON=$(jq -c '.' "$OLD_DEF_JSON_FILE")
+    local NEW_DEF_JSON=$(jq -c '.' "$NEW_DEF_JSON_FILE")
+    local OLD_USER_JSON=$(jq -c '.' "$OLD_USER_JSON_FILE")
+    local NEW_USER_JSON=$(jq -c '.' "$NEW_USER_JSON_FILE")
+
+    local OLD_DEF_HASH=$(echo "$OLD_DEF_JSON" | md5sum | awk '{ print $1 }')
+    local NEW_DEF_HASH=$(echo "$NEW_DEF_JSON" | md5sum | awk '{ print $1 }')
+
+    if [ "$OLD_DEF_HASH" == "$NEW_DEF_HASH" ]; then
+        echo "No changes detected."
+        return
+    fi
+
+    echo "Changes detected, proceeding with comparison."
+
     DEF_CHANGES=$(compare_json_recursive "$OLD_DEF_JSON" "$NEW_DEF_JSON" "" "")
     if [ -n "$DEF_CHANGES" ]; then
         echo ""
@@ -191,10 +208,10 @@ function check_and_compare_json() {
     else
         echo ""
     fi
-    
 
-    echo "$NEW_USER_JSON" | jq '.' > tmp.json && mv tmp.json "$NEW_USER_JSON_FILE"                              
+    echo "$NEW_USER_JSON" | jq '.' > tmp.json && mv tmp.json "$NEW_USER_JSON_FILE"
 }
+
 
 
 
