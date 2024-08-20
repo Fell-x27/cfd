@@ -9,6 +9,7 @@ function init-cfd {
         "wallet-manager|wallet-manager|Display menu for wallet related actions."
         "pool-manager|pool-manager|Display menu for pool related actions."
         "database-manager|database-manager|Display menu for actions related to the db-sync database."
+        "keyring-manager|keyring-manager|Manage and secure your private keys."
         "cli|cli|An enhanced cardano-cli wrapper that automatically handles network-magic and socket-path issues."
     )
 

@@ -64,7 +64,7 @@ function unreg-stake-key {
     fi
        
     #trap 'hide-key $CARDANO_KEYS_DIR/payment/stake.skey' EXIT
-    #show-key $CARDANO_KEYS_DIR/payment/stake.skey
+    #reveal-key $CARDANO_KEYS_DIR/payment/stake.skey
     #$CARDANO_BINARIES_DIR/cardano-cli key verification-key \
     #    --signing-key-file $CARDANO_KEYS_DIR/payment/stake.skey \
     #    --verification-key-file $CARDANO_KEYS_DIR/payment/stake.vkey
@@ -257,7 +257,7 @@ function gen-pool-cert {
     fi
 
     trap 'hide-key $CARDANO_KEYS_DIR/payment/stake.skey' EXIT
-    show-key $CARDANO_KEYS_DIR/payment/stake.skey
+    reveal-key $CARDANO_KEYS_DIR/payment/stake.skey
 
     $CARDANO_BINARIES_DIR/cardano-cli key verification-key \
         --signing-key-file $CARDANO_KEYS_DIR/payment/stake.skey \
@@ -453,7 +453,7 @@ function gen-kes-keys {
         --operational-certificate-issue-counter-file $COLD_KEYS/cold.counter       
 
     trap 'hide-key $COLD_KEYS/stake.skey' EXIT
-    show-key $COLD_KEYS/cold.skey
+    reveal-key $COLD_KEYS/cold.skey
 
     $CARDANO_BINARIES_DIR/cardano-cli node issue-op-cert \
         --kes-verification-key-file $KES_KEYS/kes.vkey \

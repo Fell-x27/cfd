@@ -55,7 +55,7 @@ read-from-pass() {
     fi
 }
 
-function show-key {
+function reveal-key {
     check-pass-initialized
 
     local filepath="$1"

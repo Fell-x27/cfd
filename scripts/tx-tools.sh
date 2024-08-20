@@ -103,7 +103,7 @@ function sign-tx {
     local SIGN_KEYS_PATHS=()
 
     for key in "${SIGN_KEYS[@]}"; do
-        show-key "$key"
+        reveal-key "$key"
         SIGN_KEYS_PATHS+=( "$key" )
     done
 
