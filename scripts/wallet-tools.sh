@@ -25,13 +25,33 @@ function get-keys {
 
     #Base address building
     $CADDR address payment --network-tag $NETWORK_TAG < $PAYMENT_KEYS_DIR/payment.xvk > $PAYMENT_KEYS_DIR/payment.addr
+    $CADDR address stake --network-tag $NETWORK_TAG < $PAYMENT_KEYS_DIR/stake.xvk > $PAYMENT_KEYS_DIR/stake.addr
     $CADDR address delegation $(cat $PAYMENT_KEYS_DIR/stake.xvk) < $PAYMENT_KEYS_DIR/payment.addr > $PAYMENT_KEYS_DIR/base.addr
     
+    #vkeys extracting
+    $CCLI key verification-key \
+        --signing-key-file $PAYMENT_KEYS_DIR/stake.skey \
+        --verification-key-file $PAYMENT_KEYS_DIR/stake.vkey
+
+    $CCLI key non-extended-key \
+        --extended-verification-key-file $PAYMENT_KEYS_DIR/stake.vkey \
+        --verification-key-file $PAYMENT_KEYS_DIR/stake.vkey
+
+    $CCLI key verification-key \
+        --signing-key-file $PAYMENT_KEYS_DIR/payment.skey \
+        --verification-key-file $PAYMENT_KEYS_DIR/payment.vkey
+
+    $CCLI key non-extended-key \
+        --extended-verification-key-file $PAYMENT_KEYS_DIR/payment.vkey \
+        --verification-key-file $PAYMENT_KEYS_DIR/payment.vkey
+
     rm $PAYMENT_KEYS_DIR/{stake.xsk,payment.xsk,payment.xvk,stake.xvk,payment.addr,root.xsk}
+
+    hide-key $PAYMENT_KEYS_DIR/payment.skey
+    hide-key $PAYMENT_KEYS_DIR/stake.skey
 
     echo ""
     echo "Done!"
-    echo -e "\e[1;30;47mYour keys are stored in:\e[0m \033[1m$PAYMENT_KEYS_DIR\033[0m"
     echo -e "\e[1;30;47mYour payment address is:\e[0m \033[1m$(cat $PAYMENT_KEYS_DIR/base.addr)\033[0m"
 
     echo "    Be sure that it's funded :)"
@@ -43,9 +63,7 @@ function get-keys {
     for FILE in $(find $CARDANO_KEYS_DIR -type f); do
         chmod 0600 $FILE
     done
-    
-    hide-keys "payment.skey" $PAYMENT_KEYS_DIR/payment.skey 
-    hide-keys "stake.skey" $PAYMENT_KEYS_DIR/stake.skey 
+
     return 0
 }
 

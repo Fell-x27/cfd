@@ -100,16 +100,30 @@ function sign-tx {
     local TX_NAME=$1
     shift
     local SIGN_KEYS=("$@")
-    local SIGN_KEYS=( $(build-arg-array "--signing-key-file" "${SIGN_KEYS[@]}") )
+    local SIGN_KEYS_PATHS=()
+
+    for key in "${SIGN_KEYS[@]}"; do
+        show-key "$key"
+        SIGN_KEYS_PATHS+=( "$key" )
+    done
+
+    trap 'for key in "${SIGN_KEYS_PATHS[@]}"; do hide-key "$key"; done' EXIT
 
     CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH $CARDANO_BINARIES_DIR/cardano-cli transaction sign \
         --tx-body-file $CARDANO_KEYS_DIR/$TX_NAME.raw \
-        "${SIGN_KEYS[@]}" \
+        $(build-arg-array "--signing-key-file" "${SIGN_KEYS[@]}") \
         "${MAGIC[@]}" \
         --out-file $CARDANO_KEYS_DIR/$TX_NAME.signed
 
+    trap - EXIT
+
+    for key in "${SIGN_KEYS_PATHS[@]}"; do
+        hide-key "$key"
+    done
+
     rm $CARDANO_KEYS_DIR/$TX_NAME.raw
 }
+
 
 
 function send-tx {
