@@ -11,10 +11,10 @@ function download_file() {
     if [ $STATUS -ne 0 ]; then
         echo "Error: Unable to download file from $URL"
         return 1
+    else
+        echo "Success!"
+        return 0
     fi
-
-    echo "Success!"
-    return 0
 }
 
 function download_and_extract_targz() {

@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 function get-keys {
     CADDR=$CARDANO_BINARIES_DIR/cardano-address
     CCLI=$CARDANO_BINARIES_DIR/cardano-cli
@@ -7,7 +8,7 @@ function get-keys {
     MNEMONIC=$1
     mkdir -p $PAYMENT_KEYS_DIR
 
-    #Root key
+    #Root key 
     echo $MNEMONIC | $CADDR key from-recovery-phrase Shelley > $PAYMENT_KEYS_DIR/root.xsk
 
     #Private keys
@@ -25,7 +26,7 @@ function get-keys {
     #Base address building
     $CADDR address payment --network-tag $NETWORK_TAG < $PAYMENT_KEYS_DIR/payment.xvk > $PAYMENT_KEYS_DIR/payment.addr
     $CADDR address delegation $(cat $PAYMENT_KEYS_DIR/stake.xvk) < $PAYMENT_KEYS_DIR/payment.addr > $PAYMENT_KEYS_DIR/base.addr
-
+    
     rm $PAYMENT_KEYS_DIR/{stake.xsk,payment.xsk,payment.xvk,stake.xvk,payment.addr,root.xsk}
 
     echo ""
@@ -42,6 +43,9 @@ function get-keys {
     for FILE in $(find $CARDANO_KEYS_DIR -type f); do
         chmod 0600 $FILE
     done
+    
+    hide-keys "payment.skey" $PAYMENT_KEYS_DIR/payment.skey 
+    hide-keys "stake.skey" $PAYMENT_KEYS_DIR/stake.skey 
     return 0
 }
 

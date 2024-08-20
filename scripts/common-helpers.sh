@@ -138,11 +138,91 @@ function replace-placeholders {
     echo "$STR_TO_REPLACE"
 }
 
+function get-package-manager() {
+  if command -v apt &> /dev/null; then
+    echo "apt"
+  elif command -v yum &> /dev/null; then
+    echo "yum"
+  elif command -v dnf &> /dev/null; then
+    echo "dnf"
+  elif command -v pacman &> /dev/null; then
+    echo "pacman"
+  elif command -v zypper &> /dev/null; then
+    echo "zypper"
+  elif command -v emerge &> /dev/null; then
+    echo "emerge"
+  else
+    echo "unknown"
+  fi
+}
+
+
+function check-dependencies() {
+  local missing_packages=()
+
+  for cmd in "$@"; do
+    if ! command -v $cmd &> /dev/null; then
+      missing_packages+=($cmd)
+    fi
+  done
+
+  if [ ${#missing_packages[@]} -ne 0 ]; then
+    echo ""
+    echo "Error: The following packages are not installed: ${missing_packages[@]}"
+    
+    local package_manager=$(get-package-manager)
+
+    if [ "$package_manager" = "unknown" ]; then
+      echo "Error: Unable to determine the package manager for this system."
+      echo "You must install all the required packages manually."
+      exit 1
+    fi
+
+    case $package_manager in
+      apt)
+        install_command="sudo apt update && sudo apt install -y ${missing_packages[@]}"
+        ;;
+      yum)
+        install_command="sudo yum install -y ${missing_packages[@]}"
+        ;;
+      dnf)
+        install_command="sudo dnf install -y ${missing_packages[@]}"
+        ;;
+      pacman)
+        install_command="sudo pacman -S --noconfirm ${missing_packages[@]}"
+        ;;
+      zypper)
+        install_command="sudo zypper install -y ${missing_packages[@]}"
+        ;;
+      emerge)
+        install_command="sudo emerge ${missing_packages[@]}"
+        ;;
+      *)
+        echo "Error: Unsupported package manager."
+        echo "You must install all the required packages manually."
+        exit 1
+        ;;
+    esac
+
+    echo -e "The following command will be executed to install the missing packages:\n    \033[1m$install_command\033[0m"
+    
+    read -p "Do you want to proceed with the installation? (y/n): " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+      eval "$install_command"
+    else
+      echo "Installation aborted."
+      exit 1
+    fi
+  fi
+}
+
 function check-ip {
     local IP_LIST=($(hostname -I) "127.0.0.1")    
     local CURRENT_IP=$(from-config '.global.ip')
 
     if [[ -z "$CURRENT_IP" ]]; then
+        echo ""
         echo "No IP is set. Please select a valid IP:"
     elif [[ ! " ${IP_LIST[@]} " =~ " ${CURRENT_IP} " ]]; then
         echo "Current IP: $CURRENT_IP is not valid. Please select a valid IP:"
@@ -170,14 +250,13 @@ function check-ip {
 
 
 
-function check-deployment-path {
-   
+function check-deployment-path {    
     local CARDANO_DIR=$(from-config '.global."cardano-dir"')
     local DEFAULT_DIR="$(dirname "$(readlink -f "$0")")"
 
 
     if [[ -z "$CARDANO_DIR" || ! -d "$CARDANO_DIR" ]]; then
-
+        echo ""
         echo "No software location directory chosen!"
         read -p "Please specify the path to it ($DEFAULT_DIR): " CARDANO_DIR
         

@@ -390,7 +390,11 @@ function recursive-config-linking {
         ln -fns "$NEW_USER_CONF_SUBJECT" "$LINK_CONF_SUBJECT"         
         
         if [ ! -e "$NEW_USER_CONF_SUBJECT" ]; then
-            cp -r "$OLD_USER_CONF_SUBJECT" "$NEW_USER_CONF_SUBJECT"
+            if [ -e "$OLD_USER_CONF_SUBJECT" ]; then
+                cp -r "$OLD_USER_CONF_SUBJECT" "$NEW_USER_CONF_SUBJECT"
+            else
+                cp -r "$NEW_DEF_CONF_SUBJECT" "$NEW_USER_CONF_SUBJECT"
+            fi
         fi
 
         if [ -f "$SUBJECT" ]; then        

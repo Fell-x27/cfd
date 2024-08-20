@@ -16,6 +16,7 @@ function network-manager {
     CHOSEN_OPTION=${1:-""} 
     
     if [ -z "$CHOSEN_OPTION" ]; then
+        echo ""
         echo "To start, you need to choose one of the available Cardano networks"
     fi
     

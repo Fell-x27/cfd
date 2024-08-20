@@ -5,7 +5,7 @@ MENU_SELECTED_COMMAND=""
 MENU_SELECTED_DESCRIPTION=""
 DIRECT_CALL="$0"
 
-function show-menu {
+function show-menu {    
     echo "***************************************"
     CHOSEN_OPTION=$1
     shift 1
