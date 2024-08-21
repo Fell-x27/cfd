@@ -24,8 +24,6 @@ check-dependencies bc jq tar wget awk nano file curl gpg gpg-agent haveged
 #учитывай метапакеты
 check-ip
 check-deployment-path
-check-gpg-is-ready
-check-keyring-initialized
 network-manager $NETWORK_NAME
 
 CARDANO_DIR=$(from-config '.global."cardano-dir"')
@@ -47,6 +45,8 @@ mkdir -p $CARDANO_CONFIG_DIR
 mkdir -p $CARDANO_POOL_DIR
 mkdir -p $CARDANO_KEYS_DIR
 
+check-gpg-is-ready
+check-keyring-initialized
 prepare_software "cardano-node" "issues" 
 
 if test -f $CARDANO_CONFIG_DIR/shelley-genesis.json; then
@@ -60,12 +60,5 @@ if test -f $CARDANO_CONFIG_DIR/shelley-genesis.json; then
       NETWORK_TYPE="testnet"
     fi
 fi
-
-
-
-
-
-
-
 
 
