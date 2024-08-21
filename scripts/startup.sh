@@ -4,7 +4,7 @@ source "$(dirname "$0")/scripts/menus-n-dialogs.sh"
 source "$(dirname "$0")/scripts/network-manager.sh"
 source "$(dirname "$0")/scripts/common-helpers.sh"
 source "$(dirname "$0")/scripts/tx-tools.sh"
-source "$(dirname "$0")/scripts/secure-storage-tools.sh"
+source "$(dirname "$0")/scripts/keyring-tools.sh"
 source "$(dirname "$0")/scripts/download-tools.sh"
 source "$(dirname "$0")/scripts/software-tools.sh"
 source "$(dirname "$0")/scripts/wallet-tools.sh"
@@ -24,6 +24,8 @@ check-dependencies bc jq tar wget awk nano file curl gpg gpg-agent haveged
 #учитывай метапакеты
 check-ip
 check-deployment-path
+check-gpg-is-ready
+check-keyring-initialized
 network-manager $NETWORK_NAME
 
 CARDANO_DIR=$(from-config '.global."cardano-dir"')

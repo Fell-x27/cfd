@@ -15,18 +15,3 @@ function keyring-manager {
     $MENU_SELECTED_COMMAND
 }
 
-function list-keys {
-    echo "LIST"
-}
-
-function reveal-keys {
-    echo "REVEAL"
-}
-
-function hide-keys {
-    echo "HIDE"
-}
-
-function export-keys {
-    echo "EXPORT"
-}
