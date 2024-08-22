@@ -31,8 +31,6 @@ function run_cardano_pool {
         SERVER_IP=$(from-config ".global.ip")
         NODE_PORT=$(from-config ".networks.\"${NETWORK_NAME}\".software.\"cardano-node\".\"node-port\"")
 
-
-        trap 'hide-key "$KES_KEYS/kes.skey"; hide-key "$KES_KEYS/vrf.skey"; ' EXIT
         reveal-key $KES_KEYS/kes.skey
         reveal-key $KES_KEYS/vrf.skey
 

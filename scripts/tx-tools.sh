@@ -144,7 +144,6 @@ function send-tx {
         echo "Transaction cannot be made at the moment, please wait until the previous transaction is placed in the blockchain."
         return 1
     elif echo $RESPONSE | grep -q "StakeDelegationImpossibleDELEG" || echo $RESPONSE | grep -q "StakeKeyNotRegisteredDELEG"; then
-        #rm $CARDANO_KEYS_DIR/chainbuffer
         echo -e "${BOLD}${WHITE_ON_RED} ERROR :${NORMAL} Can't register the pool - your staking key is not registered!" 
         return 1
     else

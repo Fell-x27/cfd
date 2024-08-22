@@ -237,16 +237,6 @@ function gen-pool-cert {
         META_HASH="--metadata-hash $META_HASH"
     fi
 
-    # trap 'hide-key $CARDANO_KEYS_DIR/payment/stake.skey' EXIT
-    # reveal-key $CARDANO_KEYS_DIR/payment/stake.skey
-
-    # $CARDANO_BINARIES_DIR/cardano-cli key verification-key \
-    #     --signing-key-file $CARDANO_KEYS_DIR/payment/stake.skey \
-    #     --verification-key-file $CARDANO_KEYS_DIR/payment/stake.vkey
-        
-    # $CARDANO_BINARIES_DIR/cardano-cli key non-extended-key \
-    #     --extended-verification-key-file $CARDANO_KEYS_DIR/payment/stake.vkey \
-    #     --verification-key-file $CARDANO_KEYS_DIR/payment/stake.vkey
 
     $CARDANO_BINARIES_DIR/cardano-cli stake-pool registration-certificate \
         --cold-verification-key-file $COLD_KEYS/cold.vkey \
@@ -261,9 +251,6 @@ function gen-pool-cert {
         $META_URL \
         $META_HASH \
         --out-file $CARDANO_POOL_DIR/pool-registration.cert
-
-    # hide-key $CARDANO_KEYS_DIR/payment/stake.skey
-    # trap - EXIT
 
     if ! are-you-sure-dialog "Submit it to the blockchain?" "y"; then
         echo "Aborted."
