@@ -63,23 +63,6 @@ check-keyring-initialized() {
     fi
 }
 
-    $CARDANO_BINARIES_DIR/cardano-cli stake-address build \
-       --stake-verification-key-file $CARDANO_KEYS_DIR/payment/stake.vkey \
-       --out-file stake.addr
-       "${MAGIC[@]}"
-       
-   $CARDANO_BINARIES_DIR/cardano-cli address build \
-       --payment-verification-key-file $CARDANO_KEYS_DIR/payment/payment.vkey \
-       --out-file payment.addr
-       "${MAGIC[@]}"
-       
-      $CARDANO_BINARIES_DIR/cardano-cli address build \
-       --payment-verification-key-file $CARDANO_KEYS_DIR/payment/payment.vkey \
-       --stake-verification-key-file $CARDANO_KEYS_DIR/payment/stake.vkey \
-       --out-file base.addr
-       "${MAGIC[@]}"
-
-
 derive-missed-public-keys() {
     local keys_output=$(list-keys)
     local CCLI=$CARDANO_BINARIES_DIR/cardano-cli
@@ -111,7 +94,6 @@ derive-missed-public-keys() {
 
 derive-missed-addresses() {
     local dir="$CARDANO_KEYS_DIR/payment"
-
     local cli="$CARDANO_BINARIES_DIR/cardano-cli"
 
     if [ ! -f "$dir/stake.addr" ]; then
