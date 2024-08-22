@@ -27,8 +27,6 @@ function run_cardano_pool {
         fi
     done
 
-
-
     if prepare_software "cardano-node"; then
         SERVER_IP=$(from-config ".global.ip")
         NODE_PORT=$(from-config ".networks.\"${NETWORK_NAME}\".software.\"cardano-node\".\"node-port\"")

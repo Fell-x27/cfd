@@ -452,7 +452,7 @@ function gen-kes-keys {
         --counter-value $COUNTER_VALUE \
         --operational-certificate-issue-counter-file $COLD_KEYS/cold.counter       
 
-    trap 'hide-key $COLD_KEYS/stake.skey' EXIT
+    trap 'hide-key $COLD_KEYS/cold.skey' EXIT
     reveal-key $COLD_KEYS/cold.skey
 
     $CARDANO_BINARIES_DIR/cardano-cli node issue-op-cert \

@@ -157,11 +157,15 @@ function list-keys {
         local filepath=$(realpath "$file")
 
         if [[ "$extension" == "skey" ]]; then
-            local content=$(cat "$file")
-            if [[ "$content" == "hidden" ]]; then
-                local status="\e[32m●\e[0m hidden "
+            if [[ "$filename" == "kes.skey" || "$filename" == "vrf.skey" ]]; then
+                local status="\e[33m●\e[0m online "
             else
-                local status="\e[31m●\e[0m exposed"
+                local content=$(cat "$file")
+                if [[ "$content" == "hidden" ]]; then
+                    local status="\e[32m●\e[0m hidden "
+                else
+                    local status="\e[31m●\e[0m exposed"
+                fi
             fi
         elif [[ "$extension" == "vkey" ]]; then
             local status="\e[33m●\e[0m public "
@@ -171,6 +175,7 @@ function list-keys {
         count=$((count + 1))
     done
 }
+
 
 
 function reveal-keys {
