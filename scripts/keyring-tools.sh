@@ -3,6 +3,7 @@
 check-gpg-is-ready() {
     local gpg_id="cfd-storage"
     local keyring="$CARDANO_KEYS_DIR/.keyring"
+    mkdir -p ~/.gnupg
     chmod 700 ~/.gnupg
     chown -R $(whoami):$(whoami) ~/.gnupg
 
@@ -103,8 +104,6 @@ derive-missed-addresses() {
                 --stake-verification-key-file "$dir/stake.vkey" \
                 --out-file "$dir/stake.addr" \
                 "${MAGIC[@]}"
-        else
-            echo "Error: stake.vkey not found in $dir"
         fi
     fi
 
@@ -116,8 +115,6 @@ derive-missed-addresses() {
                 --stake-verification-key-file "$dir/stake.vkey" \
                 --out-file "$dir/base.addr" \
                 "${MAGIC[@]}"
-        else
-            echo "Error: Required keys not found for base.addr in $dir"
         fi
     fi
 }

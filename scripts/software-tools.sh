@@ -265,9 +265,15 @@ function software_deploy(){
     
     if ! [ "$SF_LOCAL_META" == null ]; then
         local DESIRED_SF_VERSION=$(get-sf-version $SF_NAME)
-        DESIRED_SF_VERSION_BASE=$(echo $DESIRED_SF_VERSION | awk -F'-' '{print $1}')
-        DESIRED_SF_VERSION_SUFFIX=$(echo "$VERSION" | awk -F'-' '{if (NF>1) print "-"$2; else print ""}')
-        
+        if [ "$(echo "$DESIRED_SF_VERSION" | awk -F'-' '{print NF-1}')" -eq 1 ]; then
+            DESIRED_SF_VERSION_BASE=$(echo "$DESIRED_SF_VERSION" | awk -F'-' '{print $1}')
+            DESIRED_SF_VERSION_SUFFIX=$(echo "$DESIRED_SF_VERSION" | awk -F'-' '{print "-"$2}')
+        else
+            DESIRED_SF_VERSION_BASE="$DESIRED_SF_VERSION"
+            DESIRED_SF_VERSION_SUFFIX=""
+        fi
+
+
         local SF_GLOBAL_DIR=$CARDANO_SOFTWARE_DIR/$SF_NAME
         local SF_LOCAL_DIR=$SF_GLOBAL_DIR/$DESIRED_SF_VERSION
         local SF_BIN_DIR=$SF_LOCAL_DIR/bin
@@ -286,7 +292,7 @@ function software_deploy(){
             
             if [ "$VERBOSITY" != "silent" ]; then
                 echo ""
-                echo "$SF_NAME ver: $DESIRED_SF_VERSION  not found"   
+                echo "$SF_NAME ver: $DESIRED_SF_VERSION not found"
                 echo "Installing..."   
                 echo ""
             fi 

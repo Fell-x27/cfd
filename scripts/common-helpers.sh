@@ -233,14 +233,11 @@ function check-dependencies() {
         esac
 
         echo -e "The following command will be executed to install the missing packages:\n    \033[1m$install_command\033[0m"
-    
-        read -p "Do you want to proceed with the installation? (y/n): " -n 1 -r
-        echo
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            eval "$install_command"
-        else
-            echo "Installation aborted."
+        if ! are-you-sure-dialog "Do you want to proceed with the installation?" "y"; then
+            echo "Aborted.";
             exit 1
+        else
+            eval "$install_command"
         fi
     fi
 }

@@ -50,8 +50,7 @@ function show-menu {
             fi
         done
 
-        printf "Enter the number corresponding to the desired option: "
-        read user_input
+        read -e -p "Enter the number corresponding to the desired option: " -r user_input
 
         if [[ $user_input =~ ^[0-9]+$ ]] && [ $user_input -le ${#OPTION_NAMES[@]} ]; then
             CHOSEN_OPTION=${OPTION_NAMES[$((user_input-1))]}
@@ -79,7 +78,7 @@ function are-you-sure-dialog {
     local DEFAULT_VALUE=${2:-"n"}
 
     echo -ne "$MESSAGE [Default: $DEFAULT_VALUE]" 
-    read -p " (y/n) " -r REPLY
+    read -e -p " (y/n) " -r REPLY
 
     if [[ -z $REPLY ]]; then
         REPLY=$DEFAULT_VALUE
