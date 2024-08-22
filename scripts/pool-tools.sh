@@ -117,8 +117,6 @@ function gen-pools-keys {
     mkdir -p $KES_KEYS
 
     if rewriting-prompt "$COLD_KEYS/cold.skey" "You are about to irreversibly delete an existing pool keys!"; then
-
-
         $CARDANO_BINARIES_DIR/cardano-cli node key-gen \
         --cold-verification-key-file $COLD_KEYS/cold.vkey \
         --cold-signing-key-file $COLD_KEYS/cold.skey \

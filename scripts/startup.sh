@@ -21,7 +21,6 @@ USERNAME=$(whoami)
 NETWORK_NAME="$1"
 
 check-dependencies bc jq tar wget awk nano file curl gpg gpg-agent haveged chrony
-#учитывай метапакеты
 check-ip
 check-deployment-path
 network-manager $NETWORK_NAME
@@ -48,6 +47,7 @@ mkdir -p $CARDANO_KEYS_DIR
 check-gpg-is-ready
 check-keyring-initialized
 derive-missed-public-keys
+derive-missed-addresses
 prepare_software "cardano-node" "issues" 
 
 if test -f $CARDANO_CONFIG_DIR/shelley-genesis.json; then

@@ -63,6 +63,23 @@ check-keyring-initialized() {
     fi
 }
 
+    $CARDANO_BINARIES_DIR/cardano-cli stake-address build \
+       --stake-verification-key-file $CARDANO_KEYS_DIR/payment/stake.vkey \
+       --out-file stake.addr
+       "${MAGIC[@]}"
+       
+   $CARDANO_BINARIES_DIR/cardano-cli address build \
+       --payment-verification-key-file $CARDANO_KEYS_DIR/payment/payment.vkey \
+       --out-file payment.addr
+       "${MAGIC[@]}"
+       
+      $CARDANO_BINARIES_DIR/cardano-cli address build \
+       --payment-verification-key-file $CARDANO_KEYS_DIR/payment/payment.vkey \
+       --stake-verification-key-file $CARDANO_KEYS_DIR/payment/stake.vkey \
+       --out-file base.addr
+       "${MAGIC[@]}"
+
+
 derive-missed-public-keys() {
     local keys_output=$(list-keys)
     local CCLI=$CARDANO_BINARIES_DIR/cardano-cli
@@ -89,6 +106,38 @@ derive-missed-public-keys() {
             fi
         fi
     done <<< "$keys_output"
+}
+
+
+derive-missed-addresses() {
+    local dir="$CARDANO_KEYS_DIR/payment"
+
+    local cli="$CARDANO_BINARIES_DIR/cardano-cli"
+
+    if [ ! -f "$dir/stake.addr" ]; then
+        if [ -f "$dir/stake.vkey" ]; then
+            echo "Creating stake.addr..."
+            $cli stake-address build \
+                --stake-verification-key-file "$dir/stake.vkey" \
+                --out-file "$dir/stake.addr" \
+                "${MAGIC[@]}"
+        else
+            echo "Error: stake.vkey not found in $dir"
+        fi
+    fi
+
+    if [ ! -f "$dir/base.addr" ]; then
+        if [ -f "$dir/payment.vkey" ] && [ -f "$dir/stake.vkey" ]; then
+            echo "Creating base.addr..."
+            $cli address build \
+                --payment-verification-key-file "$dir/payment.vkey" \
+                --stake-verification-key-file "$dir/stake.vkey" \
+                --out-file "$dir/base.addr" \
+                "${MAGIC[@]}"
+        else
+            echo "Error: Required keys not found for base.addr in $dir"
+        fi
+    fi
 }
 
 

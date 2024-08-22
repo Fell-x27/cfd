@@ -40,25 +40,28 @@ function pool-setup-wizard {
 
     echo ""
     echo "> Step 1: register your stake key on blockchain"
-        reg-stake-key
+    reg-stake-key
     echo ""
-    
+
     echo ""
     echo "> Step 2: generate pool keys"
-        if gen-pools-keys; then
-           gen-kes-keys
-        fi
+    if gen-pools-keys; then
+       gen-kes-keys
+    else
+       exit 1
+    fi
     echo ""
-    
+
     echo ""
     echo "> Step 3: generate pool certificate"
-        gen-pool-cert    
+    gen-pool-cert    
     echo ""
-    
+
     echo ""
     echo "> Step 4: register pool certificate on blockchain and delegate to it"
-        reg-pool-cert
+    reg-pool-cert
     echo ""
+
     
 }
 
