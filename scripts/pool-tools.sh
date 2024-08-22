@@ -69,7 +69,7 @@ function unreg-stake-key {
         local REWARDS=$(echo $STAKE_ADDR_STATE | jq -r '.[0].rewardAccountBalance')
         
         echo -e "${BLACK_ON_YELLOW} Warning! ${NORMAL} Your stake key will be de-registered!"
-        echo -e "All your pending rewards (if any) will ${BOLD}${UNDERLINE}be transered to your wallet${NORMAL}!"
+        echo -e "All your pending rewards (if any) will be ${BOLD}${UNDERLINE}transered to your wallet${NORMAL}!"
         echo -e "You have $REWARDS Lovelace in rewards."
 
         if ! are-you-sure-dialog; then            
@@ -120,10 +120,10 @@ function gen-pools-keys {
         
         echo ""
         echo "New cold keys are successfully created!"
-        echo -e "${BLACK_ON_LIGHT_GRAY}cold.skey:${NORMAL} $COLD_KEYS/cold.skey"
-        echo -e "${BLACK_ON_LIGHT_GRAY}cold.vkey:${NORMAL} $COLD_KEYS/cold.vkey"
-        echo -e "${BLACK_ON_LIGHT_GRAY}vrf.skey:${NORMAL} $KES_KEYS/vrf.skey"
-        echo -e "${BLACK_ON_LIGHT_GRAY}vrf.vkey:${NORMAL} $KES_KEYS/vrf.vkey"
+        echo -e "${UNDERLINE}cold.skey:${NORMAL} $COLD_KEYS/cold.skey"
+        echo -e "${UNDERLINE}cold.vkey:${NORMAL} $COLD_KEYS/cold.vkey"
+        echo -e "${UNDERLINE}vrf.skey:${NORMAL} $KES_KEYS/vrf.skey"
+        echo -e "${UNDERLINE}vrf.vkey:${NORMAL} $KES_KEYS/vrf.vkey"
         return 0
     else
         return 1
@@ -448,8 +448,8 @@ function gen-kes-keys {
     
     echo ""            
     echo "New KES are successfully created!"
-    echo -e "${BLACK_ON_LIGHT_GRAY}kes.skey:${NORMAL} $KES_KEYS/kes.skey"
-    echo -e "${BLACK_ON_LIGHT_GRAY}kes.vkey:${NORMAL} $KES_KEYS/kes.vkey"
-    echo -e "${BLACK_ON_LIGHT_GRAY}node.cert:${NORMAL} $KES_KEYS/node.cert"
+    echo -e "${UNDERLINE}kes.skey:${NORMAL} $KES_KEYS/kes.skey"
+    echo -e "${UNDERLINE}kes.vkey:${NORMAL} $KES_KEYS/kes.vkey"
+    echo -e "${UNDERLINE}node.cert:${NORMAL} $KES_KEYS/node.cert"
     echo "Current KES counter is $COUNTER_VALUE"
 }
