@@ -1,4 +1,5 @@
-    #!/bin/bash
+#!/bin/bash
+
 check-gpg-is-ready() {
     local gpg_id="cfd-storage"
     local keyring="$CARDANO_KEYS_DIR/.keyring"
@@ -60,6 +61,37 @@ check-keyring-initialized() {
         mkdir -p "$keyring/$gpg_id"
         echo "Secure storage initialized at $keyring/$gpg_id."
     fi
+}
+
+derive-missed-public-keys() {
+    local keys_output=$(list-keys)
+    local CCLI=$CARDANO_BINARIES_DIR/cardano-cli
+    echo $keys_output
+    
+  
+    while IFS= read -r line; do
+        if [[ "$line" =~ \.skey$ ]]; then
+            local skey_path=$(echo "$line" | awk '{print $NF}')
+            local vkey_path="${skey_path%.skey}.vkey"
+            if [ ! -f "$vkey_path" ]; then
+                echo "Deriving public key for $skey_path"
+                
+                trap 'hide-key "$skey_path"' EXIT
+                reveal-key "$skey_path"
+                $CCLI key verification-key \
+                    --signing-key-file "$skey_path" \
+                    --verification-key-file "$vkey_path"
+
+                $CCLI key non-extended-key \
+                    --extended-verification-key-file "$vkey_path" \
+                    --verification-key-file "$vkey_path"
+                hide-key "$skey_path"
+                trap - EXIT
+                chmod 600 "$vkey_path"
+                chmod 600 "$skey_path"
+            fi
+        fi
+    done <<< "$keys_output"
 }
 
 
