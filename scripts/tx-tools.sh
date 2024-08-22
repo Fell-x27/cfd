@@ -24,7 +24,7 @@ function build-tx {
     local DEPOSIT=${2:-0}
     local WITHDRAWAL=${3:-0}
     local MIN_UTXO=2000000
-    shift 2
+    shift 3
     
     if [ $DEPOSIT -gt 0 ]; then
         MIN_UTXO=$(expr $DEPOSIT + $MIN_UTXO)
