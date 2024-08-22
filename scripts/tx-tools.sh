@@ -63,7 +63,7 @@ function build-tx {
     CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH $CARDANO_BINARIES_DIR/cardano-cli transaction build-raw \
         --tx-in ${CHOSEN_UTXO[0]} \
         --tx-out $(cat $CARDANO_KEYS_DIR/payment/base.addr)+0 \
-        ${WITHDRAWAL:--withdrawal $(cat $CARDANO_KEYS_DIR/payment/stake.addr)+$WITHDRAWAL} \
+        $([ "$WITHDRAWAL" -gt 0 ] && echo "--withdrawal $(cat $CARDANO_KEYS_DIR/payment/stake.addr)+$WITHDRAWAL") \
         --fee 200000 \
         --out-file $CARDANO_KEYS_DIR/$TX_NAME.raw \
         ${CERTIFICATES[@]}
@@ -80,12 +80,12 @@ function build-tx {
     "${MAGIC[@]}"     
      ))
 
-    local CHANGE=$(expr ${CHOSEN_UTXO[1]} - $DEPOSIT - ${FEE[0]} + $WITHDRAWAL)
+    local CHANGE=$((CHOSEN_UTXO[1] - DEPOSIT - FEE + WITHDRAWAL))
 
     CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH $CARDANO_BINARIES_DIR/cardano-cli transaction build-raw \
         --tx-in ${CHOSEN_UTXO[0]} \
         --tx-out $(cat $CARDANO_KEYS_DIR/payment/base.addr)+$CHANGE \
-         ${WITHDRAWAL:--withdrawal $(cat $CARDANO_KEYS_DIR/payment/stake.addr)+$WITHDRAWAL} \
+        $([ "$WITHDRAWAL" -gt 0 ] && echo "--withdrawal $(cat $CARDANO_KEYS_DIR/payment/stake.addr)+$WITHDRAWAL") \
         --fee $FEE \
         --out-file $CARDANO_KEYS_DIR/$TX_NAME.raw \
         ${CERTIFICATES[@]}
