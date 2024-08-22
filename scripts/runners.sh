@@ -35,8 +35,8 @@ function run_cardano_pool {
 
 
         trap 'hide-key "$KES_KEYS/kes.skey"; hide-key "$KES_KEYS/vrf.skey"; ' EXIT
-        reveal-key "kes.skey" $KES_KEYS/kes.skey
-        reveal-key "vrf.skey" $KES_KEYS/vrf.skey
+        reveal-key $KES_KEYS/kes.skey
+        reveal-key $KES_KEYS/vrf.skey
 
         $CARDANO_BINARIES_DIR/cardano-node run \
         --config $CARDANO_CONFIG_DIR/config.json \

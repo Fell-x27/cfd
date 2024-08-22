@@ -167,7 +167,7 @@ function list-keys {
             local status="\e[33m●\e[0m public "
         fi
 
-        echo -e "$count. $status $filename $filepath"
+        echo -e "$count.   $status $filename $filepath"
         count=$((count + 1))
     done
 }
