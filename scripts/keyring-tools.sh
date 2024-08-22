@@ -148,7 +148,7 @@ function hide-key {
 
 
 function list-keys {
-    local files=($(find "$CARDANO_KEYS_DIR" -type f \( -name "*.skey" -o -name "*.vkey" \)))
+    local files=($(find "$CARDANO_KEYS_DIR" -type f \( -name "*.skey" -o -name "*.vkey" \) | sort))
     local count=1
 
     for file in "${files[@]}"; do
