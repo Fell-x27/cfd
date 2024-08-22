@@ -46,8 +46,6 @@ mkdir -p $CARDANO_KEYS_DIR
 
 check-gpg-is-ready
 check-keyring-initialized
-derive-missed-public-keys
-derive-missed-addresses
 prepare_software "cardano-node" "issues" 
 
 if test -f $CARDANO_CONFIG_DIR/shelley-genesis.json; then
@@ -62,4 +60,6 @@ if test -f $CARDANO_CONFIG_DIR/shelley-genesis.json; then
     fi
 fi
 
+derive-missed-public-keys
+derive-missed-addresses
 
