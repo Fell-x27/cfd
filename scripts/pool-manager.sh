@@ -25,8 +25,8 @@ function pool-setup-wizard {
     local STAKE_REG_COST=$(jq -r ".stakeAddressDeposit" $CARDANO_CONFIG_DIR/protocol.json)
 
     echo -e "${BOLD}${BLACK_ON_YELLOW} ATTENTION! ${NORMAL}"
-    echo -e "Registering a stake key requires a${BOLD}${BLACK_ON_LIGHT_GRAY} returnable deposit of $(expr $STAKE_REG_COST / 1000000) ADA ${NORMAL}."
-    echo -e "Registering a pool requires a${BOLD}${BLACK_ON_LIGHT_GRAY} returnable deposit of $(expr $POOL_REG_COST / 1000000) ADA ${NORMAL}."
+    echo -e "Registering a stake key requires a ${BOLD}${UNDERLINE}returnable deposit of $(expr $STAKE_REG_COST / 1000000) ADA${NORMAL}."
+    echo -e "Registering a pool requires a ${BOLD}${UNDERLINE}returnable deposit of $(expr $POOL_REG_COST / 1000000) ADA${NORMAL}."
     echo "Subsequent updates are free of charge, except for the transaction fee."
 
     local CONTINUE
@@ -40,25 +40,28 @@ function pool-setup-wizard {
 
     echo ""
     echo "> Step 1: register your stake key on blockchain"
-        reg-stake-key
+    reg-stake-key
     echo ""
-    
+
     echo ""
     echo "> Step 2: generate pool keys"
-        if gen-pools-keys; then
-           gen-kes-keys
-        fi
+    if gen-pools-keys; then
+       gen-kes-keys
+    else
+       exit 1
+    fi
     echo ""
-    
+
     echo ""
     echo "> Step 3: generate pool certificate"
-        gen-pool-cert    
+    gen-pool-cert    
     echo ""
-    
+
     echo ""
     echo "> Step 4: register pool certificate on blockchain and delegate to it"
-        reg-pool-cert
+    reg-pool-cert
     echo ""
+
     
 }
 

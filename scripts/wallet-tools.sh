@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 function get-keys {
     CADDR=$CARDANO_BINARIES_DIR/cardano-address
     CCLI=$CARDANO_BINARIES_DIR/cardano-cli
@@ -7,7 +8,7 @@ function get-keys {
     MNEMONIC=$1
     mkdir -p $PAYMENT_KEYS_DIR
 
-    #Root key
+    #Root key 
     echo $MNEMONIC | $CADDR key from-recovery-phrase Shelley > $PAYMENT_KEYS_DIR/root.xsk
 
     #Private keys
@@ -24,24 +25,45 @@ function get-keys {
 
     #Base address building
     $CADDR address payment --network-tag $NETWORK_TAG < $PAYMENT_KEYS_DIR/payment.xvk > $PAYMENT_KEYS_DIR/payment.addr
+    $CADDR address stake --network-tag $NETWORK_TAG < $PAYMENT_KEYS_DIR/stake.xvk > $PAYMENT_KEYS_DIR/stake.addr
     $CADDR address delegation $(cat $PAYMENT_KEYS_DIR/stake.xvk) < $PAYMENT_KEYS_DIR/payment.addr > $PAYMENT_KEYS_DIR/base.addr
+    
+    #vkeys extracting
+    $CCLI key verification-key \
+        --signing-key-file $PAYMENT_KEYS_DIR/stake.skey \
+        --verification-key-file $PAYMENT_KEYS_DIR/stake.vkey
+
+    $CCLI key non-extended-key \
+        --extended-verification-key-file $PAYMENT_KEYS_DIR/stake.vkey \
+        --verification-key-file $PAYMENT_KEYS_DIR/stake.vkey
+
+    $CCLI key verification-key \
+        --signing-key-file $PAYMENT_KEYS_DIR/payment.skey \
+        --verification-key-file $PAYMENT_KEYS_DIR/payment.vkey
+
+    $CCLI key non-extended-key \
+        --extended-verification-key-file $PAYMENT_KEYS_DIR/payment.vkey \
+        --verification-key-file $PAYMENT_KEYS_DIR/payment.vkey
 
     rm $PAYMENT_KEYS_DIR/{stake.xsk,payment.xsk,payment.xvk,stake.xvk,payment.addr,root.xsk}
 
+    hide-key $PAYMENT_KEYS_DIR/payment.skey
+    hide-key $PAYMENT_KEYS_DIR/stake.skey
+
     echo ""
     echo "Done!"
-    echo -e "\e[1;30;47mYour keys are stored in:\e[0m \033[1m$PAYMENT_KEYS_DIR\033[0m"
-    echo -e "\e[1;30;47mYour payment address is:\e[0m \033[1m$(cat $PAYMENT_KEYS_DIR/base.addr)\033[0m"
+    echo -e "${UNDERLINE}Your payment address is${NORMAL}: $(cat $PAYMENT_KEYS_DIR/base.addr)\033[0m"
 
     echo "    Be sure that it's funded :)"
     echo "    Just send some ADA to the address above;"
-    echo -e "    You can also get some free \033[1mtestnet ADA\033[0m with https://docs.cardano.org/cardano-testnet/tools/faucet;"
+    echo -e "    You can also get some free ${BOLD}testnet ADA${NORMAL} with https://docs.cardano.org/cardano-testnet/tools/faucet;"
     echo "    Remember, the Faucet works only within the official testnets!"
     echo ""
 
     for FILE in $(find $CARDANO_KEYS_DIR -type f); do
         chmod 0600 $FILE
     done
+
     return 0
 }
 
@@ -57,11 +79,11 @@ function wallet-create {
         get-keys "$MNEMONIC"
 
         echo ""
-        echo -e "\e[1;30;47mHere is a file with your recovery phrase\e[0m: \033[1m$MNEMONIC_PATH\033[0m"
+        echo -e "${UNDERLINE}Here is a file with your recovery phrase${NORMAL}: ${BOLD}$MNEMONIC_PATH${NORMAL}"
         echo "    1) Never share it;"
         echo -e "    2) Move it to the safe storage or better \033[1mwrite to paper and remove the file\033[0m;"
         echo "    3) Keep it secured;"
-        echo -e "    4) Rememeber - \033[1mif tou lose it, you lose access to your wallet\033[0m..."
+        echo -e "    4) Rememeber - ${BOLD}if tou lose it, you lose access to your wallet${NORMAL}..."
         echo ""
     fi
 }

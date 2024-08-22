@@ -22,19 +22,9 @@ function reg-stake-key {
         echo -e "${BOLD}${WHITE_ON_RED }ERROR ${NORMAL}: you have to create or restore wallet before!"
         exit 1
     fi
-    $CARDANO_BINARIES_DIR/cardano-cli key verification-key \
-        --signing-key-file $CARDANO_KEYS_DIR/payment/stake.skey \
-        --verification-key-file $CARDANO_KEYS_DIR/payment/stake.vkey
-        
-    $CARDANO_BINARIES_DIR/cardano-cli key non-extended-key \
-        --extended-verification-key-file $CARDANO_KEYS_DIR/payment/stake.vkey \
-        --verification-key-file $CARDANO_KEYS_DIR/payment/stake.vkey
 
-    STAKE_ADDR=$($CARDANO_BINARIES_DIR/cardano-cli stake-address build \
-        --stake-verification-key-file $CARDANO_KEYS_DIR/payment/stake.vkey \
-        "${MAGIC[@]}")
+    local STAKE_ADDR=$(cat $CARDANO_KEYS_DIR/payment/stake.addr)
 
-    
     local STAKE_ADDR_STATE=$(wrap-cli-command get-stake-key-state $STAKE_ADDR)
 
     if [ "$STAKE_ADDR_STATE" == "[]" ]; then
@@ -42,12 +32,11 @@ function reg-stake-key {
         $CARDANO_BINARIES_DIR/cardano-cli stake-address registration-certificate \
         --stake-verification-key-file $CARDANO_KEYS_DIR/payment/stake.vkey \
         --out-file $CARDANO_KEYS_DIR/payment/stake.cert
-        
        
         wrap-cli-command get-protocol   
  
-        build-tx "tx" $(jq -r ".stakeAddressDeposit" $CARDANO_CONFIG_DIR/protocol.json) $CARDANO_KEYS_DIR/payment/stake.cert        
-        sign-tx  "tx" $CARDANO_KEYS_DIR/payment/payment.skey $CARDANO_KEYS_DIR/payment/stake.skey        
+        build-tx "tx" $(jq -r ".stakeAddressDeposit" $CARDANO_CONFIG_DIR/protocol.json) 0 $CARDANO_KEYS_DIR/payment/stake.cert
+        sign-tx "tx" $CARDANO_KEYS_DIR/payment/payment.skey $CARDANO_KEYS_DIR/payment/stake.skey
         echo "Trying to register..."
         send-tx  "tx"
         
@@ -61,37 +50,28 @@ function reg-stake-key {
         fi
     fi
 
-    rm $CARDANO_KEYS_DIR/payment/stake.vkey
 }
 
 function unreg-stake-key {
-     if [ ! -f "$CARDANO_KEYS_DIR/payment/stake.skey" ] || \
+    if [ ! -f "$CARDANO_KEYS_DIR/payment/stake.skey" ] || \
        [ ! -f "$CARDANO_KEYS_DIR/payment/payment.skey" ]; then
         echo -e "${BOLD}${WHITE_ON_RED }ERROR ${NORMAL}: you have to create or restore wallet before!"
         exit 1
     fi
        
-    
-    $CARDANO_BINARIES_DIR/cardano-cli key verification-key \
-        --signing-key-file $CARDANO_KEYS_DIR/payment/stake.skey \
-        --verification-key-file $CARDANO_KEYS_DIR/payment/stake.vkey
-        
-    $CARDANO_BINARIES_DIR/cardano-cli key non-extended-key \
-        --extended-verification-key-file $CARDANO_KEYS_DIR/payment/stake.vkey \
-        --verification-key-file $CARDANO_KEYS_DIR/payment/stake.vkey
-
-    STAKE_ADDR=$($CARDANO_BINARIES_DIR/cardano-cli stake-address build \
-        --stake-verification-key-file $CARDANO_KEYS_DIR/payment/stake.vkey \
-        "${MAGIC[@]}")
-
+    local STAKE_ADDR=$(cat $CARDANO_KEYS_DIR/payment/stake.addr)
     
     local STAKE_ADDR_STATE=$(wrap-cli-command get-stake-key-state $STAKE_ADDR)
 
     if [ "$STAKE_ADDR_STATE" == "[]" ]; then
-        echo -e "${BOLD}${WHITE_ON_RED} ERROR :${NORMAL} Your stake key is not registered"       
+        echo -e "${BOLD}${WHITE_ON_RED} ERROR :${NORMAL} Your stake key is not registered"
     else
+        local REWARDS=$(echo $STAKE_ADDR_STATE | jq -r '.[0].rewardAccountBalance')
+        
         echo -e "${BLACK_ON_YELLOW} Warning! ${NORMAL} Your stake key will be de-registered!"
-        echo -e "All your pending rewards (if any) will ${BLACK_ON_YELLOW} become unclaimable ${NORMAL}!"
+        echo -e "All your pending rewards (if any) will be ${BOLD}${UNDERLINE}transered to your wallet${NORMAL}!"
+        echo -e "You have $REWARDS Lovelace in rewards."
+
         if ! are-you-sure-dialog; then            
             echo "Aborted.";
             exit 1
@@ -101,17 +81,16 @@ function unreg-stake-key {
             --stake-verification-key-file $CARDANO_KEYS_DIR/payment/stake.vkey \
             --out-file $CARDANO_KEYS_DIR/payment/stake.cert
        
-            wrap-cli-command get-protocol   
+        wrap-cli-command get-protocol   
      
-            build-tx "tx" -$(jq -r ".stakeAddressDeposit" $CARDANO_CONFIG_DIR/protocol.json) $CARDANO_KEYS_DIR/payment/stake.cert        
-            sign-tx "tx" $CARDANO_KEYS_DIR/payment/payment.skey $CARDANO_KEYS_DIR/payment/stake.skey        
-            send-tx "tx" 
+        build-tx "tx" -$(jq -r ".stakeAddressDeposit" $CARDANO_CONFIG_DIR/protocol.json) $REWARDS $CARDANO_KEYS_DIR/payment/stake.cert
+        sign-tx "tx" $CARDANO_KEYS_DIR/payment/payment.skey $CARDANO_KEYS_DIR/payment/stake.skey
+        send-tx "tx"
                   
         rm $CARDANO_KEYS_DIR/payment/stake.cert
     fi
-
-    rm $CARDANO_KEYS_DIR/payment/stake.vkey
 }
+
 
 function gen-pools-keys {    
     local COLD_KEYS=$CARDANO_KEYS_DIR/cold
@@ -126,9 +105,13 @@ function gen-pools-keys {
         --cold-signing-key-file $COLD_KEYS/cold.skey \
         --operational-certificate-issue-counter-file $COLD_KEYS/cold.counter
 
+        hide-key  $COLD_KEYS/cold.skey
+
         $CARDANO_BINARIES_DIR/cardano-cli node key-gen-VRF \
         --verification-key-file $KES_KEYS/vrf.vkey \
-        --signing-key-file $KES_KEYS/vrf.skey    
+        --signing-key-file $KES_KEYS/vrf.skey
+
+        hide-key $KES_KEYS/vrf.skey
 
         chmod 0600 $COLD_KEYS/cold.skey
         chmod 0600 $COLD_KEYS/cold.vkey
@@ -137,10 +120,10 @@ function gen-pools-keys {
         
         echo ""
         echo "New cold keys are successfully created!"
-        echo -e "${BLACK_ON_LIGHT_GRAY}cold.skey:${NORMAL} $COLD_KEYS/cold.skey"
-        echo -e "${BLACK_ON_LIGHT_GRAY}cold.vkey:${NORMAL} $COLD_KEYS/cold.vkey"
-        echo -e "${BLACK_ON_LIGHT_GRAY}vrf.skey:${NORMAL} $KES_KEYS/vrf.skey"
-        echo -e "${BLACK_ON_LIGHT_GRAY}vrf.vkey:${NORMAL} $KES_KEYS/vrf.vkey"
+        echo -e "${UNDERLINE}cold.skey:${NORMAL} $COLD_KEYS/cold.skey"
+        echo -e "${UNDERLINE}cold.vkey:${NORMAL} $COLD_KEYS/cold.vkey"
+        echo -e "${UNDERLINE}vrf.skey:${NORMAL} $KES_KEYS/vrf.skey"
+        echo -e "${UNDERLINE}vrf.vkey:${NORMAL} $KES_KEYS/vrf.vkey"
         return 0
     else
         return 1
@@ -255,15 +238,6 @@ function gen-pool-cert {
     fi
 
 
-    $CARDANO_BINARIES_DIR/cardano-cli key verification-key \
-        --signing-key-file $CARDANO_KEYS_DIR/payment/stake.skey \
-        --verification-key-file $CARDANO_KEYS_DIR/payment/stake.vkey
-        
-    $CARDANO_BINARIES_DIR/cardano-cli key non-extended-key \
-        --extended-verification-key-file $CARDANO_KEYS_DIR/payment/stake.vkey \
-        --verification-key-file $CARDANO_KEYS_DIR/payment/stake.vkey
-
-
     $CARDANO_BINARIES_DIR/cardano-cli stake-pool registration-certificate \
         --cold-verification-key-file $COLD_KEYS/cold.vkey \
         --vrf-verification-key-file $KES_KEYS/vrf.vkey \
@@ -278,36 +252,28 @@ function gen-pool-cert {
         $META_HASH \
         --out-file $CARDANO_POOL_DIR/pool-registration.cert
 
-    if ! are-you-sure-dialog "Submit it to the blockchain?" "y"; then                            
+    if ! are-you-sure-dialog "Submit it to the blockchain?" "y"; then
         echo "Aborted."
         exit 1
     else 
         echo "Submitting...." 
         reg-pool-cert   
     fi      
-    rm $CARDANO_KEYS_DIR/payment/stake.vkey
 }
 
 function get-pool-data {
     local COLD_KEYS=$CARDANO_KEYS_DIR/cold
-    local KES_KEYS=$CARDANO_KEYS_DIR/kes
-    local PAYMENT_KEYS=$CARDANO_KEYS_DIR/payment
-    
-        if [ ! -f "$CARDANO_KEYS_DIR/payment/stake.skey" ]; then
-        echo -e "${BOLD}${WHITE_ON_RED }ERROR ${NORMAL}: you have to create or restore wallet before!"
+
+    if [ ! -f "$CARDANO_KEYS_DIR/payment/stake.skey" ]; then
+        echo -e "${BOLD}${WHITE_ON_RED }ERROR ${NORMAL}: you have to create or restore a wallet before!"
         exit 1
     fi
 
-    if [ ! -f "$COLD_KEYS/cold.skey" ] || \
-       [ ! -f "$KES_KEYS/vrf.skey" ]; then
-        echo -e "${BOLD}${WHITE_ON_RED }ERROR ${NORMAL}: can't find [cold.skey, vrf.skey] keys. Please move them to $COLD_KEYS or launch 'init-pool' to create them."
+    if [ ! -f "$COLD_KEYS/cold.vkey" ]; then
+        echo -e "${BOLD}${WHITE_ON_RED }ERROR ${NORMAL}: can't find [cold.vkey]. Please move it to $COLD_KEYS or launch 'init-pool' to create it."
         exit 1
     fi
 
-    if [ ! -f $CARDANO_POOL_DIR/pool-registration.cert ]; then
-        echo -e "${BOLD}${WHITE_ON_RED }ERROR ${NORMAL}: can't find the Pool Certificate. Please, move it $COLD_KEYS or create with 'init-pool' wizard."
-        exit 1
-    fi
 
     local POOL_ID=$($CARDANO_BINARIES_DIR/cardano-cli stake-pool id \
     --cold-verification-key-file $COLD_KEYS/cold.vkey)
@@ -318,7 +284,6 @@ function get-pool-data {
 
 function reg-pool-cert {
     local COLD_KEYS=$CARDANO_KEYS_DIR/cold
-    local KES_KEYS=$CARDANO_KEYS_DIR/kes
     local PAYMENT_KEYS=$CARDANO_KEYS_DIR/payment
 
     echo "Checking pool status..."
@@ -332,17 +297,10 @@ function reg-pool-cert {
     if [[ "$FUTURE_POOL_PARAMS" != "null" ]] || [[ "$POOL_PARAMS" != "null" ]]; then
         echo -n "POOL IS ALREADY REGISTERED..."
         echo "renewing pool cert;"
-        build-tx "tx" 0 $CARDANO_POOL_DIR/pool-registration.cert        
+        build-tx "tx" 0 0 $CARDANO_POOL_DIR/pool-registration.cert        
     else 
         echo -n "POOL IS NOT REGISTERED..."
         echo "init registration process;"
-        $CARDANO_BINARIES_DIR/cardano-cli key verification-key \
-            --signing-key-file $CARDANO_KEYS_DIR/payment/stake.skey \
-            --verification-key-file $CARDANO_KEYS_DIR/payment/stake.vkey
-        
-        $CARDANO_BINARIES_DIR/cardano-cli key non-extended-key \
-            --extended-verification-key-file $CARDANO_KEYS_DIR/payment/stake.vkey \
-            --verification-key-file $CARDANO_KEYS_DIR/payment/stake.vkey
         
         $CARDANO_BINARIES_DIR/cardano-cli stake-address delegation-certificate \
             --stake-verification-key-file $PAYMENT_KEYS/stake.vkey \
@@ -350,11 +308,10 @@ function reg-pool-cert {
             --out-file $CARDANO_POOL_DIR/delegation.cert
         
     
-        build-tx "tx" $(jq -r ".stakePoolDeposit" $CARDANO_CONFIG_DIR/protocol.json) \
+        build-tx "tx" $(jq -r ".stakePoolDeposit" $CARDANO_CONFIG_DIR/protocol.json) 0 \
             $CARDANO_POOL_DIR/pool-registration.cert \
             $CARDANO_POOL_DIR/delegation.cert
                     
-        rm $CARDANO_KEYS_DIR/payment/stake.vkey 
         rm $CARDANO_POOL_DIR/delegation.cert
     fi
 
@@ -406,7 +363,7 @@ function unreg-pool-cert {
                 --epoch $(expr $CURRENT_EPOCH + $NUMBER) \
                 --out-file $CARDANO_POOL_DIR/pool-deregistration.cert     
                 
-            build-tx "tx" 0 $CARDANO_POOL_DIR/pool-deregistration.cert
+            build-tx "tx" 0 0 $CARDANO_POOL_DIR/pool-deregistration.cert
             sign-tx  "tx" $CARDANO_KEYS_DIR/payment/payment.skey $COLD_KEYS/cold.skey 
             if send-tx "tx"; then                          
                 echo -e "${BLACK_ON_YELLOW}Please wait until the transaction is confirmed on the blockchain to check if the pool has been unregistered.${NORMAL}"
@@ -436,6 +393,8 @@ function gen-kes-keys {
     $CARDANO_BINARIES_DIR/cardano-cli node key-gen-KES \
         --verification-key-file $KES_KEYS/kes.vkey \
         --signing-key-file $KES_KEYS/kes.skey
+
+    hide-key $KES_KEYS/kes.skey
     
     local COUNTER_VALUE=0
     if [ -f "$KES_KEYS/node.cert" ]; then
@@ -457,14 +416,18 @@ function gen-kes-keys {
         --counter-value $COUNTER_VALUE \
         --operational-certificate-issue-counter-file $COLD_KEYS/cold.counter       
 
+    trap 'hide-key $COLD_KEYS/cold.skey' EXIT
+    reveal-key $COLD_KEYS/cold.skey
+
     $CARDANO_BINARIES_DIR/cardano-cli node issue-op-cert \
         --kes-verification-key-file $KES_KEYS/kes.vkey \
         --cold-signing-key-file $COLD_KEYS/cold.skey \
         --operational-certificate-issue-counter $COLD_KEYS/cold.counter \
         --kes-period $CURRENT_KES_PERIOD \
-        --out-file $KES_KEYS/node.cert        
-    
+        --out-file $KES_KEYS/node.cert
 
+    hide-key $COLD_KEYS/cold.skey
+    trap - EXIT
 
     chmod 0600 $KES_KEYS/kes.skey
     chmod 0600 $KES_KEYS/kes.vkey
@@ -472,8 +435,8 @@ function gen-kes-keys {
     
     echo ""            
     echo "New KES are successfully created!"
-    echo -e "${BLACK_ON_LIGHT_GRAY}kes.skey:${NORMAL} $KES_KEYS/kes.skey"
-    echo -e "${BLACK_ON_LIGHT_GRAY}kes.vkey:${NORMAL} $KES_KEYS/kes.vkey"
-    echo -e "${BLACK_ON_LIGHT_GRAY}node.cert:${NORMAL} $KES_KEYS/node.cert"
+    echo -e "${UNDERLINE}kes.skey:${NORMAL} $KES_KEYS/kes.skey"
+    echo -e "${UNDERLINE}kes.vkey:${NORMAL} $KES_KEYS/kes.vkey"
+    echo -e "${UNDERLINE}node.cert:${NORMAL} $KES_KEYS/node.cert"
     echo "Current KES counter is $COUNTER_VALUE"
 }

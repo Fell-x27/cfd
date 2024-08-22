@@ -4,27 +4,11 @@ source "$(dirname "$0")/scripts/menus-n-dialogs.sh"
 source "$(dirname "$0")/scripts/network-manager.sh"
 source "$(dirname "$0")/scripts/common-helpers.sh"
 source "$(dirname "$0")/scripts/tx-tools.sh"
+source "$(dirname "$0")/scripts/keyring-tools.sh"
 source "$(dirname "$0")/scripts/download-tools.sh"
 source "$(dirname "$0")/scripts/software-tools.sh"
 source "$(dirname "$0")/scripts/wallet-tools.sh"
 source "$(dirname "$0")/scripts/pool-tools.sh"
-
-missing_packages=()
-
-for cmd in bc jq tar wget awk nano file curl; do
-  if ! command -v $cmd &> /dev/null; then
-    missing_packages+=($cmd)
-  fi
-done
-
-if [ ${#missing_packages[@]} -ne 0 ]; then
-  echo "Error: The following packages are not installed: ${missing_packages[@]}"
-  echo "Please install them and try again."
-  exit 1
-else
-  echo "All required packages are installed."
-fi
-
 
 CONFIG_FILE="conf.json"
 CONFIG_FILE_DEF="scripts/conf.json_default"
@@ -36,6 +20,7 @@ fi
 USERNAME=$(whoami)
 NETWORK_NAME="$1"
 
+check-dependencies bc jq tar wget awk nano file curl gpg gpg-agent haveged chrony
 check-ip
 check-deployment-path
 network-manager $NETWORK_NAME
@@ -59,6 +44,8 @@ mkdir -p $CARDANO_CONFIG_DIR
 mkdir -p $CARDANO_POOL_DIR
 mkdir -p $CARDANO_KEYS_DIR
 
+check-gpg-is-ready
+check-keyring-initialized
 prepare_software "cardano-node" "issues" 
 
 if test -f $CARDANO_CONFIG_DIR/shelley-genesis.json; then
@@ -73,11 +60,6 @@ if test -f $CARDANO_CONFIG_DIR/shelley-genesis.json; then
     fi
 fi
 
-
-
-
-
-
-
-
+derive-missed-public-keys
+derive-missed-addresses
 

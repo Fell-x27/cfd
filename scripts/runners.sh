@@ -27,13 +27,12 @@ function run_cardano_pool {
         fi
     done
 
-
-
     if prepare_software "cardano-node"; then
         SERVER_IP=$(from-config ".global.ip")
         NODE_PORT=$(from-config ".networks.\"${NETWORK_NAME}\".software.\"cardano-node\".\"node-port\"")
 
-        
+        reveal-key $KES_KEYS/kes.skey
+        reveal-key $KES_KEYS/vrf.skey
 
         $CARDANO_BINARIES_DIR/cardano-node run \
         --config $CARDANO_CONFIG_DIR/config.json \

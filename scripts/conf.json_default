@@ -63,7 +63,6 @@
             },
             "cardano-wallet": {
                 "download-links": [
-                    "https://github.com/input-output-hk/cardano-wallet/releases/download/#/",
                     "https://github.com/cardano-foundation/cardano-wallet/releases/download/#/"
                 ],
                 "name-format": "cardano-wallet-#-linux64.tar.gz",
@@ -95,7 +94,7 @@
                     }
                 },
                 "cardano-db-sync": {
-                    "version": "13.3.0.0",
+                    "version": "13.4.0.0",
                     "required-files": {
                         "db-sync-config.json": "d https://book.world.dev.cardano.org/environments^/%/db-sync-config.json",
                         "postgresql-setup.sh": "d https://raw.githubusercontent.com/input-output-hk/cardano-db-sync/#/scripts/postgresql-setup.sh",
@@ -108,7 +107,7 @@
                     "version": "3.12.0"
                 },
                 "cardano-wallet": {
-                    "version": "v2024-07-19",
+                    "version": "v2024-08-11",
                     "cardano-wallet-port": "8100"
                 }
             }
@@ -131,7 +130,7 @@
                     }
                 },
                 "cardano-db-sync": {
-                    "version": "13.3.0.0",
+                    "version": "13.4.0.0",
                     "required-files": {
                         "db-sync-config.json": "d https://book.world.dev.cardano.org/environments^/%/db-sync-config.json",
                         "postgresql-setup.sh": "d https://raw.githubusercontent.com/input-output-hk/cardano-db-sync/#/scripts/postgresql-setup.sh",
@@ -144,7 +143,7 @@
                     "version": "3.12.0"
                 },
                 "cardano-wallet": {
-                    "version": "v2024-07-19",
+                    "version": "v2024-08-11",
                     "cardano-wallet-port": "8101"
                 }
             }
@@ -167,7 +166,7 @@
                     }
                 },
                 "cardano-db-sync": {
-                    "version": "13.3.0.0",
+                    "version": "13.4.0.0",
                     "required-files": {
                         "db-sync-config.json": "d https://book.world.dev.cardano.org/environments^/%/db-sync-config.json",
                         "postgresql-setup.sh": "d https://raw.githubusercontent.com/input-output-hk/cardano-db-sync/#/scripts/postgresql-setup.sh",
@@ -180,7 +179,7 @@
                     "version": "3.12.0"
                 },
                 "cardano-wallet": {
-                    "version": "v2024-07-19",
+                    "version": "v2024-08-11",
                     "cardano-wallet-port": "8102"
                 }
             }

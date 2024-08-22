@@ -22,8 +22,9 @@ function build-tx {
 
     local TX_NAME=$1
     local DEPOSIT=${2:-0}
+    local WITHDRAWAL=${3:-0}
     local MIN_UTXO=2000000
-    shift 2
+    shift 3
     
     if [ $DEPOSIT -gt 0 ]; then
         MIN_UTXO=$(expr $DEPOSIT + $MIN_UTXO)
@@ -38,7 +39,6 @@ function build-tx {
   
    
     if [[ -z "$CHAINED_UTXO_ID" || -z "$CHAINED_UTXO_BALANCE" ]]; then  
-#        echo -e "${WHITE_ON_RED} NOT CHAINED ${NORMAL}"              
         for i in "${UTXO_hashes[@]}"
         do
             AMOUNT=$(echo $UTXO_list | jq -r ".[\"$i\"].value.lovelace")
@@ -48,7 +48,6 @@ function build-tx {
             fi
         done
     else
-#        echo -e "${WHITE_ON_RED} CHAINED ${NORMAL}"
         CHOSEN_UTXO[0]=$CHAINED_UTXO_ID
         CHOSEN_UTXO[1]=$CHAINED_UTXO_BALANCE        
     fi
@@ -56,7 +55,7 @@ function build-tx {
     
     if [ ${CHOSEN_UTXO[1]} -lt $MIN_UTXO ]; then
         echo -e "${BOLD}${BLACK_ON_YELLOW} WARNING! ${NORMAL} Can't process transaction! The balance of the wallet is insufficient. Please, fund it."
-        echo -e "There should be at least one UTxO with approximately ${BLACK_ON_LIGHT_GRAY} $(expr $MIN_UTXO / 1000000) ADA ${NORMAL} and no assets:"
+        echo -e "There should be at least one UTxO with approximately ${UNDERLINE}$(expr $MIN_UTXO / 1000000) ADA${NORMAL} and no assets:"
         wrap-cli-command get-utxo-pretty
         exit 0
     fi   
@@ -64,6 +63,7 @@ function build-tx {
     CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH $CARDANO_BINARIES_DIR/cardano-cli transaction build-raw \
         --tx-in ${CHOSEN_UTXO[0]} \
         --tx-out $(cat $CARDANO_KEYS_DIR/payment/base.addr)+0 \
+        $([ "$WITHDRAWAL" -gt 0 ] && echo "--withdrawal $(cat $CARDANO_KEYS_DIR/payment/stake.addr)+$WITHDRAWAL") \
         --fee 200000 \
         --out-file $CARDANO_KEYS_DIR/$TX_NAME.raw \
         ${CERTIFICATES[@]}
@@ -75,16 +75,17 @@ function build-tx {
      --protocol-params-file $CARDANO_CONFIG_DIR/protocol.json  \
      --tx-in-count 2 \
      --tx-out-count 2 \
-     --witness-count 2 \
+     --witness-count 4 \
      --tx-body-file $CARDANO_KEYS_DIR/$TX_NAME.raw \
     "${MAGIC[@]}"     
      ))
 
-    local CHANGE=$(expr ${CHOSEN_UTXO[1]} - $DEPOSIT - ${FEE[0]})
+    local CHANGE=$((CHOSEN_UTXO[1] - DEPOSIT - FEE + WITHDRAWAL))
 
     CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH $CARDANO_BINARIES_DIR/cardano-cli transaction build-raw \
         --tx-in ${CHOSEN_UTXO[0]} \
         --tx-out $(cat $CARDANO_KEYS_DIR/payment/base.addr)+$CHANGE \
+        $([ "$WITHDRAWAL" -gt 0 ] && echo "--withdrawal $(cat $CARDANO_KEYS_DIR/payment/stake.addr)+$WITHDRAWAL") \
         --fee $FEE \
         --out-file $CARDANO_KEYS_DIR/$TX_NAME.raw \
         ${CERTIFICATES[@]}
@@ -100,16 +101,30 @@ function sign-tx {
     local TX_NAME=$1
     shift
     local SIGN_KEYS=("$@")
-    local SIGN_KEYS=( $(build-arg-array "--signing-key-file" "${SIGN_KEYS[@]}") )
+    local SIGN_KEYS_PATHS=()
+
+    for key in "${SIGN_KEYS[@]}"; do
+        reveal-key "$key"
+        SIGN_KEYS_PATHS+=( "$key" )
+    done
+
+    trap 'for key in "${SIGN_KEYS_PATHS[@]}"; do hide-key "$key"; done' EXIT
 
     CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH $CARDANO_BINARIES_DIR/cardano-cli transaction sign \
         --tx-body-file $CARDANO_KEYS_DIR/$TX_NAME.raw \
-        "${SIGN_KEYS[@]}" \
+        $(build-arg-array "--signing-key-file" "${SIGN_KEYS[@]}") \
         "${MAGIC[@]}" \
         --out-file $CARDANO_KEYS_DIR/$TX_NAME.signed
 
+    trap - EXIT
+
+    for key in "${SIGN_KEYS_PATHS[@]}"; do
+        hide-key "$key"
+    done
+
     rm $CARDANO_KEYS_DIR/$TX_NAME.raw
 }
+
 
 
 function send-tx {
@@ -129,7 +144,6 @@ function send-tx {
         echo "Transaction cannot be made at the moment, please wait until the previous transaction is placed in the blockchain."
         return 1
     elif echo $RESPONSE | grep -q "StakeDelegationImpossibleDELEG" || echo $RESPONSE | grep -q "StakeKeyNotRegisteredDELEG"; then
-        #rm $CARDANO_KEYS_DIR/chainbuffer
         echo -e "${BOLD}${WHITE_ON_RED} ERROR :${NORMAL} Can't register the pool - your staking key is not registered!" 
         return 1
     else
