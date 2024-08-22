@@ -66,9 +66,6 @@ check-keyring-initialized() {
 derive-missed-public-keys() {
     local keys_output=$(list-keys)
     local CCLI=$CARDANO_BINARIES_DIR/cardano-cli
-    echo $keys_output
-    
-  
     while IFS= read -r line; do
         if [[ "$line" =~ \.skey$ ]]; then
             local skey_path=$(echo "$line" | awk '{print $NF}')
