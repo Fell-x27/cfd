@@ -23,10 +23,6 @@ function reg-stake-key {
         exit 1
     fi
 
-    #STAKE_ADDR=$($CARDANO_BINARIES_DIR/cardano-cli stake-address build \
-    #    --stake-verification-key-file $CARDANO_KEYS_DIR/payment/stake.vkey \
-    #   "${MAGIC[@]}")
-
     local STAKE_ADDR=$(cat $CARDANO_KEYS_DIR/payment/stake.addr)
 
     local STAKE_ADDR_STATE=$(wrap-cli-command get-stake-key-state $STAKE_ADDR)
@@ -39,7 +35,7 @@ function reg-stake-key {
        
         wrap-cli-command get-protocol   
  
-        build-tx "tx" $(jq -r ".stakeAddressDeposit" $CARDANO_CONFIG_DIR/protocol.json) $CARDANO_KEYS_DIR/payment/stake.cert
+        build-tx "tx" $(jq -r ".stakeAddressDeposit" $CARDANO_CONFIG_DIR/protocol.json) 0 $CARDANO_KEYS_DIR/payment/stake.cert
         sign-tx "tx" $CARDANO_KEYS_DIR/payment/payment.skey $CARDANO_KEYS_DIR/payment/stake.skey
         echo "Trying to register..."
         send-tx  "tx"
@@ -57,38 +53,25 @@ function reg-stake-key {
 }
 
 function unreg-stake-key {
-     if [ ! -f "$CARDANO_KEYS_DIR/payment/stake.skey" ] || \
+    if [ ! -f "$CARDANO_KEYS_DIR/payment/stake.skey" ] || \
        [ ! -f "$CARDANO_KEYS_DIR/payment/payment.skey" ]; then
         echo -e "${BOLD}${WHITE_ON_RED }ERROR ${NORMAL}: you have to create or restore wallet before!"
         exit 1
     fi
        
-    #trap 'hide-key $CARDANO_KEYS_DIR/payment/stake.skey' EXIT
-    #reveal-key $CARDANO_KEYS_DIR/payment/stake.skey
-    #$CARDANO_BINARIES_DIR/cardano-cli key verification-key \
-    #    --signing-key-file $CARDANO_KEYS_DIR/payment/stake.skey \
-    #    --verification-key-file $CARDANO_KEYS_DIR/payment/stake.vkey
-        
-    #$CARDANO_BINARIES_DIR/cardano-cli key non-extended-key \
-    #    --extended-verification-key-file $CARDANO_KEYS_DIR/payment/stake.vkey \
-    #    --verification-key-file $CARDANO_KEYS_DIR/payment/stake.vkey
-
-    #STAKE_ADDR=$($CARDANO_BINARIES_DIR/cardano-cli stake-address build \
-    #    --stake-verification-key-file $CARDANO_KEYS_DIR/payment/stake.vkey \
-    #    "${MAGIC[@]}")
-
-    #hide-key $CARDANO_KEYS_DIR/payment/stake.skey
-    #trap - EXIT
-
     local STAKE_ADDR=$(cat $CARDANO_KEYS_DIR/payment/stake.addr)
     
     local STAKE_ADDR_STATE=$(wrap-cli-command get-stake-key-state $STAKE_ADDR)
 
     if [ "$STAKE_ADDR_STATE" == "[]" ]; then
-        echo -e "${BOLD}${WHITE_ON_RED} ERROR :${NORMAL} Your stake key is not registered"       
+        echo -e "${BOLD}${WHITE_ON_RED} ERROR :${NORMAL} Your stake key is not registered"
     else
+        local REWARDS=$(echo $STAKE_ADDR_STATE | jq -r '.[0].rewardAccountBalance')
+        
         echo -e "${BLACK_ON_YELLOW} Warning! ${NORMAL} Your stake key will be de-registered!"
-        echo -e "All your pending rewards (if any) will ${BLACK_ON_YELLOW} become unclaimable ${NORMAL}!"
+        echo -e "All your pending rewards (if any) will ${BOLD}${UNDERLINE}be transered to your wallet${NORMAL}!"
+        echo -e "You have $REWARDS Lovelace in rewards."
+
         if ! are-you-sure-dialog; then            
             echo "Aborted.";
             exit 1
@@ -98,16 +81,16 @@ function unreg-stake-key {
             --stake-verification-key-file $CARDANO_KEYS_DIR/payment/stake.vkey \
             --out-file $CARDANO_KEYS_DIR/payment/stake.cert
        
-            wrap-cli-command get-protocol   
+        wrap-cli-command get-protocol   
      
-            build-tx "tx" -$(jq -r ".stakeAddressDeposit" $CARDANO_CONFIG_DIR/protocol.json) $CARDANO_KEYS_DIR/payment/stake.cert
-            sign-tx "tx" $CARDANO_KEYS_DIR/payment/payment.skey $CARDANO_KEYS_DIR/payment/stake.skey
-            send-tx "tx" 
+        build-tx "tx" -$(jq -r ".stakeAddressDeposit" $CARDANO_CONFIG_DIR/protocol.json) $REWARDS $CARDANO_KEYS_DIR/payment/stake.cert
+        sign-tx "tx" $CARDANO_KEYS_DIR/payment/payment.skey $CARDANO_KEYS_DIR/payment/stake.skey
+        send-tx "tx"
                   
         rm $CARDANO_KEYS_DIR/payment/stake.cert
     fi
-
 }
+
 
 function gen-pools-keys {    
     local COLD_KEYS=$CARDANO_KEYS_DIR/cold
@@ -304,10 +287,6 @@ function get-pool-data {
         exit 1
     fi
 
-    #if [ ! -f $CARDANO_POOL_DIR/pool-registration.cert ]; then
-    #    echo -e "${BOLD}${WHITE_ON_RED }ERROR ${NORMAL}: can't find the Pool Certificate. Please, move it $COLD_KEYS or create with 'init-pool' wizard."
-    #    exit 1
-    #fi
 
     local POOL_ID=$($CARDANO_BINARIES_DIR/cardano-cli stake-pool id \
     --cold-verification-key-file $COLD_KEYS/cold.vkey)
@@ -331,7 +310,7 @@ function reg-pool-cert {
     if [[ "$FUTURE_POOL_PARAMS" != "null" ]] || [[ "$POOL_PARAMS" != "null" ]]; then
         echo -n "POOL IS ALREADY REGISTERED..."
         echo "renewing pool cert;"
-        build-tx "tx" 0 $CARDANO_POOL_DIR/pool-registration.cert        
+        build-tx "tx" 0 0 $CARDANO_POOL_DIR/pool-registration.cert        
     else 
         echo -n "POOL IS NOT REGISTERED..."
         echo "init registration process;"
@@ -342,7 +321,7 @@ function reg-pool-cert {
             --out-file $CARDANO_POOL_DIR/delegation.cert
         
     
-        build-tx "tx" $(jq -r ".stakePoolDeposit" $CARDANO_CONFIG_DIR/protocol.json) \
+        build-tx "tx" $(jq -r ".stakePoolDeposit" $CARDANO_CONFIG_DIR/protocol.json) 0 \
             $CARDANO_POOL_DIR/pool-registration.cert \
             $CARDANO_POOL_DIR/delegation.cert
                     
@@ -397,7 +376,7 @@ function unreg-pool-cert {
                 --epoch $(expr $CURRENT_EPOCH + $NUMBER) \
                 --out-file $CARDANO_POOL_DIR/pool-deregistration.cert     
                 
-            build-tx "tx" 0 $CARDANO_POOL_DIR/pool-deregistration.cert
+            build-tx "tx" 0 0 $CARDANO_POOL_DIR/pool-deregistration.cert
             sign-tx  "tx" $CARDANO_KEYS_DIR/payment/payment.skey $COLD_KEYS/cold.skey 
             if send-tx "tx"; then                          
                 echo -e "${BLACK_ON_YELLOW}Please wait until the transaction is confirmed on the blockchain to check if the pool has been unregistered.${NORMAL}"

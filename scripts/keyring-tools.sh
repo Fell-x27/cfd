@@ -261,11 +261,9 @@ function reveal-keys {
     echo ""
 
     echo "WARNING: Revealing keys will expose them until they are manually hidden again. CFD will automatically hide them during interaction, but until then they will be vulnerable."
-    read -e -p "Are you sure you want to proceed? (y/N): " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        echo "Operation cancelled."
-        return
+    if ! are-you-sure-dialog; then            
+        echo "Aborted.";
+        exit 1
     fi
 
     for key_line in "${keys_to_process[@]}"; do
@@ -326,11 +324,9 @@ function hide-keys {
     echo ""
 
     echo "WARNING: Hiding these keys will make them inaccessible to scripts and applications other than CFD until they are revealed again."
-    read -e -p "Are you sure you want to proceed? (y/N): " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        echo "Operation cancelled."
-        return
+    if ! are-you-sure-dialog; then            
+        echo "Aborted.";
+        exit 1
     fi
 
     for key_line in "${keys_to_process[@]}"; do
@@ -396,11 +392,9 @@ function export-keys {
     if [ "$reveal_warning" = true ]; then
         echo ""
         echo "WARNING: Hidden keys will be exported in an unprotected, revealed state. Ensure that you handle them securely."
-        read -e -p "Are you sure you want to proceed? (y/N): " -n 1 -r
-        echo
-        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-            echo "Operation cancelled."
-            return
+        if ! are-you-sure-dialog; then            
+            echo "Aborted.";
+            exit 1
         fi
     fi
 

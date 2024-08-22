@@ -75,7 +75,7 @@ function show-menu {
 }
 
 function are-you-sure-dialog {
-    local MESSAGE=${1:-"Are you sure?"}
+    local MESSAGE=${1:-"Are you sure you want to proceed?"}
     local DEFAULT_VALUE=${2:-"n"}
 
     echo -ne "$MESSAGE [Default: $DEFAULT_VALUE]" 

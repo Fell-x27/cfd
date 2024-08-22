@@ -22,6 +22,7 @@ function build-tx {
 
     local TX_NAME=$1
     local DEPOSIT=${2:-0}
+    local WITHDRAWAL=${3:-0}
     local MIN_UTXO=2000000
     shift 2
     
@@ -38,7 +39,6 @@ function build-tx {
   
    
     if [[ -z "$CHAINED_UTXO_ID" || -z "$CHAINED_UTXO_BALANCE" ]]; then  
-#        echo -e "${WHITE_ON_RED} NOT CHAINED ${NORMAL}"              
         for i in "${UTXO_hashes[@]}"
         do
             AMOUNT=$(echo $UTXO_list | jq -r ".[\"$i\"].value.lovelace")
@@ -48,7 +48,6 @@ function build-tx {
             fi
         done
     else
-#        echo -e "${WHITE_ON_RED} CHAINED ${NORMAL}"
         CHOSEN_UTXO[0]=$CHAINED_UTXO_ID
         CHOSEN_UTXO[1]=$CHAINED_UTXO_BALANCE        
     fi
@@ -64,6 +63,7 @@ function build-tx {
     CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH $CARDANO_BINARIES_DIR/cardano-cli transaction build-raw \
         --tx-in ${CHOSEN_UTXO[0]} \
         --tx-out $(cat $CARDANO_KEYS_DIR/payment/base.addr)+0 \
+        ${WITHDRAWAL:--withdrawal $(cat $CARDANO_KEYS_DIR/payment/stake.addr)+$WITHDRAWAL} \
         --fee 200000 \
         --out-file $CARDANO_KEYS_DIR/$TX_NAME.raw \
         ${CERTIFICATES[@]}
@@ -80,11 +80,12 @@ function build-tx {
     "${MAGIC[@]}"     
      ))
 
-    local CHANGE=$(expr ${CHOSEN_UTXO[1]} - $DEPOSIT - ${FEE[0]})
+    local CHANGE=$(expr ${CHOSEN_UTXO[1]} - $DEPOSIT - ${FEE[0]} + $WITHDRAWAL)
 
     CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH $CARDANO_BINARIES_DIR/cardano-cli transaction build-raw \
         --tx-in ${CHOSEN_UTXO[0]} \
         --tx-out $(cat $CARDANO_KEYS_DIR/payment/base.addr)+$CHANGE \
+         ${WITHDRAWAL:--withdrawal $(cat $CARDANO_KEYS_DIR/payment/stake.addr)+$WITHDRAWAL} \
         --fee $FEE \
         --out-file $CARDANO_KEYS_DIR/$TX_NAME.raw \
         ${CERTIFICATES[@]}
