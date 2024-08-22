@@ -158,64 +158,96 @@ function get-package-manager() {
 
 
 function check-dependencies() {
-  local missing_packages=()
-
-  for cmd in "$@"; do
-    if ! command -v $cmd &> /dev/null; then
-      missing_packages+=($cmd)
-    fi
-  done
-
-  if [ ${#missing_packages[@]} -ne 0 ]; then
-    echo ""
-    echo "Error: The following packages are not installed: ${missing_packages[@]}"
-    
+    local missing_packages=()
     local package_manager=$(get-package-manager)
 
-    if [ "$package_manager" = "unknown" ]; then
-      echo "Error: Unable to determine the package manager for this system."
-      echo "You must install all the required packages manually."
-      exit 1
-    fi
+    for cmd in "$@"; do
+        if ! command -v $cmd &> /dev/null; then
+            if [ "$package_manager" = "apt" ]; then
+                # Проверка установки через dpkg-query
+                if ! dpkg-query -W -f='${Status}' $cmd 2>/dev/null | grep -q "install ok installed"; then
+                    missing_packages+=($cmd)
+                fi
+            elif [ "$package_manager" = "yum" ]; then
+                if ! rpm -q $cmd &> /dev/null; then
+                    missing_packages+=($cmd)
+                fi
+            elif [ "$package_manager" = "dnf" ]; then
+                if ! dnf list installed $cmd &> /dev/null; then
+                    missing_packages+=($cmd)
+                fi
+            elif [ "$package_manager" = "pacman" ]; then
+                if ! pacman -Q $cmd &> /dev/null; then
+                    missing_packages+=($cmd)
+                fi
+            elif [ "$package_manager" = "zypper" ]; then
+                if ! zypper search --installed-only $cmd &> /dev/null; then
+                    missing_packages+=($cmd)
+                fi
+            elif [ "$package_manager" = "emerge" ]; then
+                if ! equery list $cmd &> /dev/null; then
+                    missing_packages+=($cmd)
+                fi
+            else
+                echo "Error: Unsupported package manager."
+                echo "You must install all the required packages manually."
+                exit 1
+            fi
+        fi
+    done
 
-    case $package_manager in
-      apt)
-        install_command="sudo apt update && sudo apt install -y ${missing_packages[@]}"
-        ;;
-      yum)
-        install_command="sudo yum install -y ${missing_packages[@]}"
-        ;;
-      dnf)
-        install_command="sudo dnf install -y ${missing_packages[@]}"
-        ;;
-      pacman)
-        install_command="sudo pacman -S --noconfirm ${missing_packages[@]}"
-        ;;
-      zypper)
-        install_command="sudo zypper install -y ${missing_packages[@]}"
-        ;;
-      emerge)
-        install_command="sudo emerge ${missing_packages[@]}"
-        ;;
-      *)
-        echo "Error: Unsupported package manager."
-        echo "You must install all the required packages manually."
-        exit 1
-        ;;
-    esac
+    if [ ${#missing_packages[@]} -ne 0 ]; then
+        echo ""
+        echo "Error: The following packages are not installed: ${missing_packages[@]}"
 
-    echo -e "The following command will be executed to install the missing packages:\n    \033[1m$install_command\033[0m"
+        if [ "$package_manager" = "unknown" ]; then
+            echo "Error: Unable to determine the package manager for this system."
+            echo "You must install all the required packages manually."
+            exit 1
+        fi
+
+        case $package_manager in
+            apt)
+                install_command="sudo apt update && sudo apt install -y ${missing_packages[@]}"
+                ;;
+            yum)
+                install_command="sudo yum install -y ${missing_packages[@]}"
+                ;;
+            dnf)
+                install_command="sudo dnf install -y ${missing_packages[@]}"
+                ;;
+            pacman)
+                install_command="sudo pacman -S --noconfirm ${missing_packages[@]}"
+                ;;
+            zypper)
+                install_command="sudo zypper install -y ${missing_packages[@]}"
+                ;;
+            emerge)
+                install_command="sudo emerge ${missing_packages[@]}"
+                ;;
+            *)
+                echo "Error: Unsupported package manager."
+                echo "You must install all the required packages manually."
+                exit 1
+                ;;
+        esac
+
+        echo -e "The following command will be executed to install the missing packages:\n    \033[1m$install_command\033[0m"
     
-    read -p "Do you want to proceed with the installation? (y/n): " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-      eval "$install_command"
-    else
-      echo "Installation aborted."
-      exit 1
+        read -p "Do you want to proceed with the installation? (y/n): " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            eval "$install_command"
+        else
+            echo "Installation aborted."
+            exit 1
+        fi
     fi
-  fi
 }
+
+
+
+
 
 function check-ip {
     local IP_LIST=($(hostname -I) "127.0.0.1")    

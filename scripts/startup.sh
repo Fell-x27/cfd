@@ -20,7 +20,7 @@ fi
 USERNAME=$(whoami)
 NETWORK_NAME="$1"
 
-check-dependencies bc jq tar wget awk nano file curl gpg gpg-agent haveged
+check-dependencies bc jq tar wget awk nano file curl gpg gpg-agent haveged chrony
 #учитывай метапакеты
 check-ip
 check-deployment-path

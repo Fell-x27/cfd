@@ -156,6 +156,8 @@ function list-keys {
         local extension="${filename##*.}"
         local filepath=$(realpath "$file")
 
+        local formatted_count=$(printf "%3d. " "$count")
+
         if [[ "$extension" == "skey" ]]; then
             if [[ "$filename" == "kes.skey" || "$filename" == "vrf.skey" ]]; then
                 local status="\e[33m●\e[0m online "
@@ -171,7 +173,7 @@ function list-keys {
             local status="\e[33m●\e[0m public "
         fi
 
-        echo -e "$count.   $status $filename $filepath"
+        echo -e "$formatted_count$status $filename $filepath"
         count=$((count + 1))
     done
 }
