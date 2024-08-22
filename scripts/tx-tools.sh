@@ -75,7 +75,7 @@ function build-tx {
      --protocol-params-file $CARDANO_CONFIG_DIR/protocol.json  \
      --tx-in-count 2 \
      --tx-out-count 2 \
-     --witness-count 2 \
+     --witness-count 4 \
      --tx-body-file $CARDANO_KEYS_DIR/$TX_NAME.raw \
     "${MAGIC[@]}"     
      ))
