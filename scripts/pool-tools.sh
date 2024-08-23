@@ -393,9 +393,7 @@ function gen-kes-keys {
     $CARDANO_BINARIES_DIR/cardano-cli node key-gen-KES \
         --verification-key-file $KES_KEYS/kes.vkey \
         --signing-key-file $KES_KEYS/kes.skey
-
-    hide-key $KES_KEYS/kes.skey
-    
+   
     local COUNTER_VALUE=0
     if [ -f "$KES_KEYS/node.cert" ]; then
         local KES_PERIOD_INFO=$(wrap-cli-command get-kes-period-info)
