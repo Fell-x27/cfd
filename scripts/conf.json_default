@@ -94,7 +94,7 @@
                     }
                 },
                 "cardano-db-sync": {
-                    "version": "13.4.0.0",
+                    "version": "13.4.0.2",
                     "required-files": {
                         "db-sync-config.json": "d https://book.world.dev.cardano.org/environments^/%/db-sync-config.json",
                         "postgresql-setup.sh": "d https://raw.githubusercontent.com/input-output-hk/cardano-db-sync/#/scripts/postgresql-setup.sh",
@@ -130,7 +130,7 @@
                     }
                 },
                 "cardano-db-sync": {
-                    "version": "13.4.0.0",
+                    "version": "13.4.0.2",
                     "required-files": {
                         "db-sync-config.json": "d https://book.world.dev.cardano.org/environments^/%/db-sync-config.json",
                         "postgresql-setup.sh": "d https://raw.githubusercontent.com/input-output-hk/cardano-db-sync/#/scripts/postgresql-setup.sh",
@@ -166,7 +166,7 @@
                     }
                 },
                 "cardano-db-sync": {
-                    "version": "13.4.0.0",
+                    "version": "13.4.0.2",
                     "required-files": {
                         "db-sync-config.json": "d https://book.world.dev.cardano.org/environments^/%/db-sync-config.json",
                         "postgresql-setup.sh": "d https://raw.githubusercontent.com/input-output-hk/cardano-db-sync/#/scripts/postgresql-setup.sh",
