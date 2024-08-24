@@ -447,17 +447,7 @@ function software_config() {
         fi
         
         local REQUIRED_SOFTWARE_LIST=$(echo $SF_GLOBAL_META | jq -r '.["required-software"] | .[]')
-        for REQ_SF_NAME in $REQUIRED_SOFTWARE_LIST; do
-            if [ "$VERBOSITY" != "silent" ]; then
-                echo -n "      \"$REQ_SF_NAME\" software is required..."
-                if [ -z "$(which $REQ_SF_NAME)" ]; then
-                   echo -e "\e[1;41m$REQ_SF_NAME is not installed! You have to fix it;\e[1;m"
-                   return 1
-                else
-                    echo "Ok!"
-                fi 
-            fi
-        done
+        check-dependencies $(echo "$REQUIRED_SOFTWARE_LIST" | tr '\n' ' ')
 
         local REQUIRED_FILES_LIST=$(echo $SF_GLOBAL_META | jq -r '.["required-files"] | .[]')
         for REQ_FILE_NAME in $REQUIRED_FILES_LIST; do
