@@ -60,22 +60,13 @@ function run_cardano_db_sync {
                 --state-dir $CARDANO_STORAGE_DIR/db_sync/ \
                 --schema-dir $CARDANO_CONFIG_DIR/schema/ \
                 "${@:1}"
-        elif 
-            echo "$output" | grep -qE "Error : User '.*' can't access postgres"; then
+        elif echo "$output" | grep -qE "Error : User '.*' can't access postgres"; then
             echo ""    
             echo -e "\033[43m\033[30mWARNING: There is no '$USERNAME' user in postgres.\033[0m Let's fix it!"
-            echo ""
-            echo "First step:"
-            echo "     sudo su - postgres"
-            echo "  or, if there is no sudo, become root and use:"
-            echo "     su - postgres"
-            echo ""
-            echo "Second step:"
-            echo "     createuser --createdb --superuser $USERNAME"
-            echo ""
-            echo "Third step:"
-            echo "     exit"
-            echo ""
+            echo -e "Next command will be performed: ${BOLD}sudo -u postgres createuser --createdb --superuser $USERNAME${NORMAL}"
+            sudo -u postgres createuser --createdb --superuser $USERNAME 2>/dev/null
+            echo "Ok, looks good, let's start it again!"                
+                run_cardano_db_sync "${@:1}"
         elif echo "$output" | grep -qE "Error : No '.*' database"; then
             echo "The database does not exist, trying to fix..."
             output=$("$(dirname "$0")/cardano.sh" ${NETWORK_NAME} database-manager createdb 2>/dev/null)
