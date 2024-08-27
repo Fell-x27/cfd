@@ -25,7 +25,7 @@ function database-manager {
         echo "   11. restore-snapshot - Restore a db-sync state snapshot.Direct mode only with <snapshot-file> <ledger-state-dir> parameters!*"
 
         echo ""
-        echo "   *Direct mode example: ./cardano.sh $NETWORK_NAME $MODE_NAME restore-snapshot <snapshot-file> <ledger-state-dir>"
+        echo "   *Direct mode example: ./cardano.sh $NETWORK_NAME$MODE_NAME database-manager restore-snapshot <snapshot-file> <ledger-state-dir>"
         echo ""
         read -p "Enter the number of the desired command: " SELECTED_NUM
 

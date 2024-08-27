@@ -374,13 +374,11 @@ function recursive-config-linking {
     local DESIRED_SF_VERSION=$3
     local SF_GLOBAL_DIR=$4
     local LINKS_DIR=$5
-    
 
     for SUBJECT in "$CONF_DIR"/*; do         
     
         local BASENAME=$(basename "$SUBJECT")                
         local LINK_CONF_SUBJECT=$LINKS_DIR/$BASENAME
-        
         
         if [ "$BASENAME" == "*" ]; then
             return 0
@@ -395,13 +393,13 @@ function recursive-config-linking {
         
         ln -fns "$NEW_USER_CONF_SUBJECT" "$LINK_CONF_SUBJECT"         
         
-        if [ ! -e "$NEW_USER_CONF_SUBJECT" ]; then
-            if [ -e "$OLD_USER_CONF_SUBJECT" ]; then
-                cp -r "$OLD_USER_CONF_SUBJECT" "$NEW_USER_CONF_SUBJECT"
-            else
-                cp -r "$NEW_DEF_CONF_SUBJECT" "$NEW_USER_CONF_SUBJECT"
-            fi
-        fi
+	if [ ! -e "$NEW_USER_CONF_SUBJECT" ]; then
+	    if [ -e "$OLD_USER_CONF_SUBJECT" ] && [[ "$OLD_USER_CONF_SUBJECT" == *.json ]] && [[ "$OLD_USER_CONF_SUBJECT" != *-genesis.json ]]; then
+		cp -r "$OLD_USER_CONF_SUBJECT" "$NEW_USER_CONF_SUBJECT"
+	    else
+		cp -r "$NEW_DEF_CONF_SUBJECT" "$NEW_USER_CONF_SUBJECT"
+	    fi
+	fi
 
         if [ -f "$SUBJECT" ]; then        
             if [ $(file -rbL --mime-type "$NEW_DEF_CONF_SUBJECT") == "text/x-shellscript" ] || [ $(file -rbL --mime-type "$NEW_DEF_CONF_SUBJECT") == "application/x-executable" ]; then
