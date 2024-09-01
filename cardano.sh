@@ -4,6 +4,7 @@ source "$(dirname "$0")/scripts/startup.sh"
 
 function init-cfd {
     local OPTION_N_DESCRIPTIONS=(
+        "install-software|install-software|Display menu with available Cardano software for installation only."
         "run-software|run-software|Display menu with available Cardano software."
         "check-sync|check-sync|Check the sync state of an already launched node."
         "wallet-manager|wallet-manager|Display menu for wallet related actions."
