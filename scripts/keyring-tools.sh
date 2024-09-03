@@ -33,11 +33,11 @@ check-gpg-is-ready() {
             fi
         done
 
-        echo "Key-Type: default
+        echo "Key-Type: RSA
 Key-Length: 3072
-Subkey-Type: default
+Subkey-Type: RSA
 Name-Real: $gpg_id
-Expire-Date: 365000d
+Expire-Date: 0
 Passphrase: $passphrase
 %commit" | gpg --batch --gen-key --pinentry-mode loopback
 
