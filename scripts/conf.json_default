@@ -80,7 +80,7 @@
             "description": "The Cardano Production network. Slot = 1 sec. Epoch = 5 days;",
             "software": {
                 "cardano-node": {
-                    "version": "9.1.0",
+                    "version": "9.1.1",
                     "node-port": "5001",
                     "submit-api-port": "8999",
                     "required-files": {
@@ -94,7 +94,7 @@
                     }
                 },
                 "cardano-db-sync": {
-                    "version": "13.4.0.2",
+                    "version": "13.5.0.0",
                     "required-files": {
                         "db-sync-config.json": "d https://book.world.dev.cardano.org/environments^/%/db-sync-config.json",
                         "postgresql-setup.sh": "d https://raw.githubusercontent.com/input-output-hk/cardano-db-sync/#/scripts/postgresql-setup.sh",
@@ -116,7 +116,7 @@
             "description": "The Cardano Preproduction test network. Slot = 1 sec. Epoch = 5 days;",
             "software": {
                 "cardano-node": {
-                    "version": "9.1.0",
+                    "version": "9.1.1",
                     "node-port": "5002",
                     "submit-api-port": "8998",
                     "required-files": {
@@ -130,7 +130,7 @@
                     }
                 },
                 "cardano-db-sync": {
-                    "version": "13.4.0.2",
+                    "version": "13.5.0.0",
                     "required-files": {
                         "db-sync-config.json": "d https://book.world.dev.cardano.org/environments^/%/db-sync-config.json",
                         "postgresql-setup.sh": "d https://raw.githubusercontent.com/input-output-hk/cardano-db-sync/#/scripts/postgresql-setup.sh",
@@ -152,7 +152,7 @@
             "description": "The Cardano Preview test network. Fast epochs, fast testing! Slot = 1 sec. Epoch = 1 day;",
             "software": {
                 "cardano-node": {
-                    "version": "9.1.0",
+                    "version": "9.1.1",
                     "node-port": "5003",
                     "submit-api-port": "8997",
                     "required-files": {
@@ -166,7 +166,7 @@
                     }
                 },
                 "cardano-db-sync": {
-                    "version": "13.4.0.2",
+                    "version": "13.5.0.0",
                     "required-files": {
                         "db-sync-config.json": "d https://book.world.dev.cardano.org/environments^/%/db-sync-config.json",
                         "postgresql-setup.sh": "d https://raw.githubusercontent.com/input-output-hk/cardano-db-sync/#/scripts/postgresql-setup.sh",
