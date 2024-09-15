@@ -82,7 +82,6 @@
                 "cardano-node": {
                     "version": "9.1.1",
                     "node-port": "5001",
-                    "submit-api-port": "8999",
                     "required-files": {
                         "config.json": "d https://book.world.dev.cardano.org/environments^/%/config.json",
                         "topology.json": "d https://book.world.dev.cardano.org/environments^/%/topology.json",
@@ -94,7 +93,7 @@
                     }
                 },
                 "cardano-db-sync": {
-                    "version": "13.5.0.0",
+                    "version": "13.5.0.2",
                     "required-files": {
                         "db-sync-config.json": "d https://book.world.dev.cardano.org/environments^/%/db-sync-config.json",
                         "postgresql-setup.sh": "d https://raw.githubusercontent.com/input-output-hk/cardano-db-sync/#/scripts/postgresql-setup.sh",
@@ -107,9 +106,13 @@
                     "version": "3.12.0"
                 },
                 "cardano-wallet": {
-                    "version": "v2024-08-11",
+                    "version": "v2024-09-03",
                     "cardano-wallet-port": "8100"
-                }
+                },
+		"cardano-submit-api": {
+                    "submit-api-port": "8999",
+                    "submit-api-metrics-port": "9999"
+                }  
             }
         },
         "preprod": {
@@ -117,8 +120,7 @@
             "software": {
                 "cardano-node": {
                     "version": "9.1.1",
-                    "node-port": "5002",
-                    "submit-api-port": "8998",
+                    "node-port": "5002",                    
                     "required-files": {
                         "config.json": "d https://book.world.dev.cardano.org/environments^/%/config.json",
                         "topology.json": "d https://book.world.dev.cardano.org/environments^/%/topology.json",
@@ -130,7 +132,7 @@
                     }
                 },
                 "cardano-db-sync": {
-                    "version": "13.5.0.0",
+                    "version": "13.5.0.2",
                     "required-files": {
                         "db-sync-config.json": "d https://book.world.dev.cardano.org/environments^/%/db-sync-config.json",
                         "postgresql-setup.sh": "d https://raw.githubusercontent.com/input-output-hk/cardano-db-sync/#/scripts/postgresql-setup.sh",
@@ -143,9 +145,13 @@
                     "version": "3.12.0"
                 },
                 "cardano-wallet": {
-                    "version": "v2024-08-11",
+                    "version": "v2024-09-03",
                     "cardano-wallet-port": "8101"
-                }
+                },
+        	"cardano-submit-api": {
+                    "submit-api-port": "8998",
+                    "submit-api-metrics-port": "9998"
+                }          
             }
         },
         "preview": {
@@ -154,7 +160,6 @@
                 "cardano-node": {
                     "version": "9.1.1",
                     "node-port": "5003",
-                    "submit-api-port": "8997",
                     "required-files": {
                         "config.json": "d https://book.world.dev.cardano.org/environments^/%/config.json",
                         "topology.json": "d https://book.world.dev.cardano.org/environments^/%/topology.json",
@@ -166,7 +171,7 @@
                     }
                 },
                 "cardano-db-sync": {
-                    "version": "13.5.0.0",
+                    "version": "13.5.0.2",
                     "required-files": {
                         "db-sync-config.json": "d https://book.world.dev.cardano.org/environments^/%/db-sync-config.json",
                         "postgresql-setup.sh": "d https://raw.githubusercontent.com/input-output-hk/cardano-db-sync/#/scripts/postgresql-setup.sh",
@@ -179,9 +184,13 @@
                     "version": "3.12.0"
                 },
                 "cardano-wallet": {
-                    "version": "v2024-08-11",
+                    "version": "v2024-09-03",
                     "cardano-wallet-port": "8102"
-                }
+                },
+        	"cardano-submit-api": {
+                    "submit-api-port": "8997",
+                    "submit-api-metrics-port": "9997"
+                }  
             }
         }
     }

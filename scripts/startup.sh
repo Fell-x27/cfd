@@ -27,6 +27,7 @@ network-manager $NETWORK_NAME
 
 CARDANO_DIR=$(from-config '.global."cardano-dir"')
 
+
 CARDANO_SOFTWARE_DIR=$CARDANO_DIR/software
 CARDANO_NETWORKS_DIR=$CARDANO_DIR/networks/$NETWORK_NAME
 CARDANO_STORAGE_DIR=$CARDANO_NETWORKS_DIR/storage

@@ -84,12 +84,14 @@ fi
 
 function run_cardano_sapi {
     if prepare_software "cardano-node"; then
-        SAPI_PORT=$(from-config ".networks.\"${NETWORK_NAME}\".software.\"cardano-node\".\"submit-api-port\"")
+        SAPI_PORT=$(from-config ".networks.\"${NETWORK_NAME}\".software.\"cardano-submit-api\".\"submit-api-port\"")
+        SAPI_METRICS_PORT=$(from-config ".networks.\"${NETWORK_NAME}\".software.\"cardano-submit-api\".\"submit-api-metrics-port\"")
 
         $CARDANO_BINARIES_DIR/cardano-submit-api \
         --config $CARDANO_CONFIG_DIR/submit-api-config.json \
         --socket-path $CARDANO_SOCKET_PATH \
         --port $SAPI_PORT \
+        --metrics-port $SAPI_METRICS_PORT \
         "${MAGIC[@]}"
     fi
 }

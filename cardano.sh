@@ -14,7 +14,7 @@ function init-cfd {
         "cli|cli|An enhanced cardano-cli wrapper that automatically handles network-magic and socket-path issues."
     )
 
-    CHOSEN_OPTION=${1:-""} 
+    CHOSEN_OPTION=${1:-""}
     show-menu "$CHOSEN_OPTION" "${OPTION_N_DESCRIPTIONS[@]}"
     echo "Selected mode: $MENU_SELECTED_OPTION"
 
@@ -22,7 +22,7 @@ function init-cfd {
     "${MENU_SELECTED_COMMAND}" "${@:2}"
 }
 
-init-cfd ${@:2}
+init-cfd "${@:2}"
 DIRECT_CALL=($DIRECT_CALL)
 
 if [ "$#" -gt "${#DIRECT_CALL[@]}" ]; then

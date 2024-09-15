@@ -2,9 +2,10 @@
 
 function install-software {    
     local OPTION_N_DESCRIPTIONS=(
-        "node|prepare_software 'cardano-node'|Install cardano-node and cardano submit-api ${UNDERLINE}V%cardano-node%${NORMAL}" 
-        "db-sync|prepare_software 'cardano-db-sync'|Install cardano db-sync ${UNDERLINE}V%cardano-db-sync%${NORMAL}" 
-        "wallet|prepare_software cardano-wallet|Install cardano-wallet ${UNDERLINE}%cardano-wallet%${NORMAL} backend"
+        "cardano-node|prepare_software 'cardano-node'|Install cardano-node and cardano submit-api ${UNDERLINE}V%cardano-node%${NORMAL}" 
+        "cardano-db-sync|prepare_software 'cardano-db-sync'|Install cardano db-sync ${UNDERLINE}V%cardano-db-sync%${NORMAL}" 
+        "cardano-wallet|prepare_software cardano-wallet|Install cardano-wallet ${UNDERLINE}%cardano-wallet%${NORMAL} backend"
+        "cardano-address|prepare_software cardano-address|Install cardano-address ${UNDERLINE}%cardano-address%${NORMAL} tool"
     )
     
     for index in "${!OPTION_N_DESCRIPTIONS[@]}"; do
