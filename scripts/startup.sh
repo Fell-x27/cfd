@@ -11,24 +11,13 @@ source "$(dirname "$0")/scripts/download-tools.sh"
 source "$(dirname "$0")/scripts/software-tools.sh"
 source "$(dirname "$0")/scripts/wallet-tools.sh"
 source "$(dirname "$0")/scripts/pool-tools.sh"
+source "$(dirname "$0")/scripts/config-tools.sh"
+
 
 CONFIG_FILE="conf.json"
 CONFIG_FILE_DEF="scripts/conf.json_default"
-CONFIG_FILE_DEF_PREV="scripts/conf.json_default_prev"
 
-if [ ! -f "$CONFIG_FILE_DEF_PREV" ]; then
-    cp "$CONFIG_FILE_DEF" "$CONFIG_FILE_DEF_PREV"
-fi
-
-if [ ! -f "$CONFIG_FILE" ]; then
-    cp "$CONFIG_FILE_DEF" "$CONFIG_FILE"
-else
-    check_and_compare_json "$CONFIG_FILE_DEF_PREV" "$CONFIG_FILE_DEF" "$CONFIG_FILE" "$CONFIG_FILE" "silent"
-    if [ $? -eq 0 ]; then
-        cp "$CONFIG_FILE_DEF" "$CONFIG_FILE_DEF_PREV"
-    fi
-fi
-
+check-config $CONFIG_FILE $CONFIG_FILE_DEF
 
 USERNAME=$(whoami)
 NETWORK_NAME="$1"

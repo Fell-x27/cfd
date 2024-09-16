@@ -80,7 +80,7 @@
             "description": "The Cardano Production network. Slot = 1 sec. Epoch = 5 days;",
             "software": {
                 "cardano-node": {
-                    "version": "9.1.1",
+                    "version": "auto",
                     "node-port": "5001",
                     "required-files": {
                         "config.json": "d https://book.world.dev.cardano.org/environments^/%/config.json",
@@ -93,7 +93,7 @@
                     }
                 },
                 "cardano-db-sync": {
-                    "version": "13.5.0.2",
+                    "version": "auto",
                     "required-files": {
                         "db-sync-config.json": "d https://book.world.dev.cardano.org/environments^/%/db-sync-config.json",
                         "postgresql-setup.sh": "d https://raw.githubusercontent.com/input-output-hk/cardano-db-sync/#/scripts/postgresql-setup.sh",
@@ -103,10 +103,10 @@
                     }
                 },
                 "cardano-address": {
-                    "version": "3.12.0"
+                    "version": "auto"
                 },
                 "cardano-wallet": {
-                    "version": "v2024-09-03",
+                    "version": "auto",
                     "cardano-wallet-port": "8100"
                 },
 		"cardano-submit-api": {
@@ -119,7 +119,7 @@
             "description": "The Cardano Preproduction test network. Slot = 1 sec. Epoch = 5 days;",
             "software": {
                 "cardano-node": {
-                    "version": "9.1.1",
+                    "version": "auto",
                     "node-port": "5002",                    
                     "required-files": {
                         "config.json": "d https://book.world.dev.cardano.org/environments^/%/config.json",
@@ -132,7 +132,7 @@
                     }
                 },
                 "cardano-db-sync": {
-                    "version": "13.5.0.2",
+                    "version": "auto",
                     "required-files": {
                         "db-sync-config.json": "d https://book.world.dev.cardano.org/environments^/%/db-sync-config.json",
                         "postgresql-setup.sh": "d https://raw.githubusercontent.com/input-output-hk/cardano-db-sync/#/scripts/postgresql-setup.sh",
@@ -142,10 +142,10 @@
                     }
                 },
                 "cardano-address": {
-                    "version": "3.12.0"
+                    "version": "auto"
                 },
                 "cardano-wallet": {
-                    "version": "v2024-09-03",
+                    "version": "auto",
                     "cardano-wallet-port": "8101"
                 },
         	"cardano-submit-api": {
@@ -158,7 +158,7 @@
             "description": "The Cardano Preview test network. Fast epochs, fast testing! Slot = 1 sec. Epoch = 1 day;",
             "software": {
                 "cardano-node": {
-                    "version": "9.1.1",
+                    "version": "auto",
                     "node-port": "5003",
                     "required-files": {
                         "config.json": "d https://book.world.dev.cardano.org/environments^/%/config.json",
@@ -171,7 +171,7 @@
                     }
                 },
                 "cardano-db-sync": {
-                    "version": "13.5.0.2",
+                    "version": "auto",
                     "required-files": {
                         "db-sync-config.json": "d https://book.world.dev.cardano.org/environments^/%/db-sync-config.json",
                         "postgresql-setup.sh": "d https://raw.githubusercontent.com/input-output-hk/cardano-db-sync/#/scripts/postgresql-setup.sh",
@@ -181,10 +181,10 @@
                     }
                 },
                 "cardano-address": {
-                    "version": "3.12.0"
+                    "version": "auto"
                 },
                 "cardano-wallet": {
-                    "version": "v2024-09-03",
+                    "version": "auto",
                     "cardano-wallet-port": "8102"
                 },
         	"cardano-submit-api": {

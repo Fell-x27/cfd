@@ -59,7 +59,9 @@ function compare_json_recursive() {
                         CHANGES_BUFFER+="-${SELECTOR}.${KEY_ESCAPED}\n"
                     else
                         # Key is in both, but values are different
-                        CHANGES_BUFFER+="^${SELECTOR}.${KEY_ESCAPED}%|#${JSON1_VALUE}||${JSON2_VALUE}\n"
+                        if [ "${JSON1_VALUE}" != '"auto"' ] && [ "${JSON1_VALUE}" != '""' ]; then
+                            CHANGES_BUFFER+="^${SELECTOR}.${KEY_ESCAPED}%|#${JSON1_VALUE}||${JSON2_VALUE}\n"
+                        fi
                     fi
                 fi
             fi
@@ -196,6 +198,7 @@ function check_and_compare_json() {
 
     local OLD_DEF_HASH=$(echo "$OLD_DEF_JSON" | md5sum | awk '{ print $1 }')
     local NEW_DEF_HASH=$(echo "$NEW_DEF_JSON" | md5sum | awk '{ print $1 }')
+    local OLD_USER_HASH=$(echo "$OLD_USER_JSON" | md5sum | awk '{ print $1 }')
 
     if [ "$OLD_DEF_HASH" == "$NEW_DEF_HASH" ]; then
         if [ "$MODE" != "silent" ]; then
@@ -204,19 +207,31 @@ function check_and_compare_json() {
         return 1 
     fi
 
-    echo "Changes detected, proceeding with comparison."
-
+    echo "Changes detected. Proceeding with comparison."
+    echo "Looking for changes in default files:"
     DEF_CHANGES=$(compare_json_recursive "$OLD_DEF_JSON" "$NEW_DEF_JSON" "" "")
+
     if [ -n "$DEF_CHANGES" ]; then
         echo ""
+        echo "Global changes:"
         visualize_diff "$DEF_CHANGES"
         echo -n "applying..."
         NEW_USER_JSON=$(apply_diff "$DEF_CHANGES" "$NEW_USER_JSON")
         echo "done!"
-    else
-        echo ""
     fi
 
+    if [ "$OLD_DEF_HASH" != "$OLD_USER_HASH" ]; then
+        echo "Looking for changes made by the user:"
+        CUSTOM_CHANGES=$(compare_json_recursive "$OLD_DEF_JSON" "$OLD_USER_JSON" "" "")
+        if [ -n "$CUSTOM_CHANGES" ]; then
+            echo ""
+            echo "User's customization:"
+            visualize_diff "$CUSTOM_CHANGES"
+            echo -n "applying..."
+            NEW_USER_JSON=$(apply_diff "$CUSTOM_CHANGES" "$NEW_USER_JSON")
+            echo "done!"
+        fi
+    fi
     echo "$NEW_USER_JSON" | jq '.' > tmp.json && mv tmp.json "$NEW_USER_JSON_FILE"
 
     return 0 
