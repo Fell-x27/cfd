@@ -16,12 +16,12 @@ function network-manager {
     CHOSEN_OPTION=${1:-""} 
     
     if [ -z "$CHOSEN_OPTION" ]; then
-        echo ""
-        echo "To start, you need to choose one of the available Cardano networks"
+        echo "" 1>&2
+        echo "To start, you need to choose one of the available Cardano networks" 1>&2
     fi
     
     show-menu "$CHOSEN_OPTION" "${OPTION_N_DESCRIPTIONS[@]}"
     
-    echo "Selected network: $MENU_SELECTED_OPTION"
+    echo "Selected network: $MENU_SELECTED_OPTION" 1>&2
     NETWORK_NAME=$MENU_SELECTED_COMMAND
 }

@@ -24,7 +24,7 @@ function install-software {
     CHOSEN_OPTION=${1:-""} 
     show-menu "$CHOSEN_OPTION" "${OPTION_N_DESCRIPTIONS[@]}"
     
-    echo "Selected software: $MENU_SELECTED_OPTION"
+    echo "Selected software: $MENU_SELECTED_OPTION" 1>&2
     $MENU_SELECTED_COMMAND "${@:2}"
 }
 

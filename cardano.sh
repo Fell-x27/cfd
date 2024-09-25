@@ -16,7 +16,7 @@ function init-cfd {
 
     CHOSEN_OPTION=${1:-""}
     show-menu "$CHOSEN_OPTION" "${OPTION_N_DESCRIPTIONS[@]}"
-    echo "Selected mode: $MENU_SELECTED_OPTION"
+    echo "Selected mode: $MENU_SELECTED_OPTION" 1>&2
 
     source "$(dirname "$0")/scripts/${MENU_SELECTED_COMMAND}.sh"
     "${MENU_SELECTED_COMMAND}" "${@:2}"
@@ -31,6 +31,6 @@ else
     DIRECT_CALL="${DIRECT_CALL[@]}"
 fi
 
-echo "---"
-echo -e "${UNDERLINE}Direct call for this action${NORMAL}: $DIRECT_CALL"
+echo "---" 1>&2
+echo -e "${UNDERLINE}Direct call for this action${NORMAL}: $DIRECT_CALL" 1>&2
 

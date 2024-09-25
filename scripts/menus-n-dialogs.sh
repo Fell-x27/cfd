@@ -6,7 +6,7 @@ MENU_SELECTED_DESCRIPTION=""
 DIRECT_CALL="$0"
 
 function show-menu {    
-    echo "***************************************"
+    echo "***************************************" 1>&2
     CHOSEN_OPTION=$1
     shift 1
 
@@ -43,19 +43,19 @@ function show-menu {
         for index in "${!OPTION_NAMES[@]}"; do
             if [ -z "${DESCRIPTIONS[$index]}" ]; then
                 printf "%d. %-*s" $((index+1)) $max_len "${OPTION_NAMES[$index]}"
-                echo
+                echo 1>&2
             else
                 printf "%d. %-*s" $((index+1)) $max_len "${OPTION_NAMES[$index]}"
-                echo -e " - ${DESCRIPTIONS[$index]}"
+                echo -e " - ${DESCRIPTIONS[$index]}" 1>&2
             fi
         done
 
-        read -e -p "Enter the number corresponding to the desired option: " -r user_input
+        read -e -p "Enter the number corresponding to the desired option: " -r user_input 
 
         if [[ $user_input =~ ^[0-9]+$ ]] && [ $user_input -le ${#OPTION_NAMES[@]} ]; then
             CHOSEN_OPTION=${OPTION_NAMES[$((user_input-1))]}
         else
-            echo "Invalid selection. Exiting."
+            echo "Invalid selection. Exiting." 1>&2
             exit 1
         fi
     fi
@@ -99,7 +99,7 @@ function rewriting-prompt {
         if are-you-sure-dialog "$WARNING_MESSAGE"; then
             return 0
         else
-            echo "Operation canceled."
+            echo "Operation canceled." 1>&2
             return 1
         fi
     fi

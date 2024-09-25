@@ -1,6 +1,6 @@
 #!/bin/bash
 
 function check-sync {
-    echo "***************************************"
+    echo "***************************************" 1>&2
     wrap-cli-command run-check-sync
 }

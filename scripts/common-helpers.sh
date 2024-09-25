@@ -5,10 +5,19 @@ BOLD="\033[1m"
 NORMAL="\033[0m"
 UNDERLINE="\033[4m"
 
-BLACK_ON_YELLOW="\033[30;43m"
-BLACK_ON_LIGHT_GRAY="\033[30;47m"
-WHITE_ON_RED="\033[37;41m"
-GREEN_ON_BLACK="\033[32;40m"
+BLACK="\033[30m"
+WHITE="\033[37m"
+GREEN="\033[32m"
+
+ON_YELLOW="\033[43m"
+ON_LIGHT_GRAY="\033[47m"
+ON_RED="\033[41m"
+ON_BLACK="\033[40m"
+
+BLACK_ON_YELLOW="${BLACK}${ON_YELLOW}"
+BLACK_ON_LIGHT_GRAY="${BLACK}${ON_LIGHT_GRAY}"
+WHITE_ON_RED="${WHITE}${ON_RED}"
+GREEN_ON_BLACK="${GREEN}${ON_BLACK}"
 
 
 spin() {
@@ -28,9 +37,9 @@ function check-db-sync-state {
     local PORT=$(cut -d ':' -f 2 $PGPASS_FILE)
 
     if pg_isready -p $PORT >/dev/null 2>&1; then
-        echo "Port $PORT is active. PostgreSQL is running."
+        echo "Port $PORT is active. PostgreSQL is running." 1>&2
     else
-        echo -e "${BOLD}${WHITE_ON_RED} ERROR: ${NORMAL} Port $PORT is not active. PostgreSQL might not be installed or running."
+        echo -e "${BOLD}${WHITE_ON_RED} ERROR: ${NORMAL} Port $PORT is not active. PostgreSQL might not be installed or running." 1>&2
         exit 1
     fi
 
@@ -49,22 +58,22 @@ function get-utxo-json {
             --out-file=/dev/stdout \
             "${MAGIC[@]}"
     else
-        echo -e "${BOLD}${WHITE_ON_RED}ERROR${NORMAL}: you have to create or restore wallet before!"
+        echo -e "${BOLD}${WHITE_ON_RED}ERROR${NORMAL}: you have to create or restore wallet before!" 1>&2
     fi
 }
 
 function get-utxo-pretty {
     if [ -f "$CARDANO_KEYS_DIR/payment/base.addr" ]; then
-        echo ""
+        echo "" 1>&2
         cat $CARDANO_KEYS_DIR/payment/base.addr
-        echo ""
-        echo ""
+        echo "" 1>&2
+        echo "" 1>&2
         CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH \
         $CARDANO_BINARIES_DIR/cardano-cli query utxo \
         --address $(cat $CARDANO_KEYS_DIR/payment/base.addr) \
         "${MAGIC[@]}"
     else
-        echo -e "${BOLD}${WHITE_ON_RED}ERROR${NORMAL}: you have to create or restore wallet before!"
+        echo -e "${BOLD}${WHITE_ON_RED}ERROR${NORMAL}: you have to create or restore wallet before!" 1>&2
     fi
 }
 
@@ -75,7 +84,7 @@ function from-config {
 
 function check-node-sync {
     if [ ! -f "$CARDANO_SOCKET_PATH" ]; then
-        echo ""
+        echo "" 1>&2
     fi
 }
 
@@ -100,8 +109,8 @@ function wrap-cli-command {
     local COMMAND=$1
     output=$("$COMMAND" "${@:2}" 2>&1)
     if echo "$output" | grep -q "does not exist ("; then
-        echo -e "\e[1;41mERROR\e[1;m Can't connect to the Cardano node. Please, check if it launched."
-        echo ""
+        echo -e "\e[1;41mERROR\e[1;m Can't connect to the Cardano node. Please, check if it launched." 1>&2
+        echo "" 1>&2
         exit 1
     elif [ -n "$output" ]; then        
         echo -e "$output"
@@ -189,20 +198,20 @@ function check-dependencies() {
                     missing_packages+=($cmd)
                 fi
             else
-                echo "Error: Unsupported package manager."
-                echo "You must install all the required packages manually."
+                echo "Error: Unsupported package manager." 1>&2
+                echo "You must install all the required packages manually." 1>&2
                 exit 1
             fi
         fi
     done
 
     if [ ${#missing_packages[@]} -ne 0 ]; then
-        echo ""
-        echo "Error: The following packages are not installed: ${missing_packages[@]}"
+        echo "" 1>&2
+        echo "Error: The following packages are not installed: ${missing_packages[@]}" 1>&2
 
         if [ "$package_manager" = "unknown" ]; then
-            echo "Error: Unable to determine the package manager for this system."
-            echo "You must install all the required packages manually."
+            echo "Error: Unable to determine the package manager for this system." 1>&2
+            echo "You must install all the required packages manually." 1>&2
             exit 1
         fi
 
@@ -226,15 +235,15 @@ function check-dependencies() {
                 install_command="sudo emerge ${missing_packages[@]}"
                 ;;
             *)
-                echo "Error: Unsupported package manager."
-                echo "You must install all the required packages manually."
+                echo "Error: Unsupported package manager." 1>&2
+                echo "You must install all the required packages manually." 1>&2
                 exit 1
                 ;;
         esac
 
         echo -e "The following command will be executed to install the missing packages:\n    \033[1m$install_command\033[0m"
         if ! are-you-sure-dialog "Do you want to proceed with the installation?" "y"; then
-            echo "Aborted.";
+            echo "Aborted."; 1>&2
             exit 1
         else
             eval "$install_command"

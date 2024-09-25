@@ -11,7 +11,7 @@ function keyring-manager {
     CHOSEN_OPTION=${1:-""}
     show-menu "$CHOSEN_OPTION" "${OPTION_N_DESCRIPTIONS[@]}"
 
-    echo "Selected action: $MENU_SELECTED_OPTION"
+    echo "Selected action: $MENU_SELECTED_OPTION" 1>&2
     $MENU_SELECTED_COMMAND
 }
 
