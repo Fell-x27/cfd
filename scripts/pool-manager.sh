@@ -3,6 +3,7 @@
 function pool-manager {    
     local OPTION_N_DESCRIPTIONS=(
         "pool-setup-wizard|pool-setup-wizard|Set up a new stake pool using a step-by-step interface."
+        "pool-info|pool-info|Show pool related information."
         "stake-key-register|stake-key-register|Register pool-owner's stake key."
         "stake-key-unregister|stake-key-unregister|Unregister pool-owner's stake key."
         "pool-certificate-edit|pool-certificate-edit|Edit your stake pool certificate."
@@ -65,6 +66,11 @@ function pool-setup-wizard {
     
 }
 
+function pool-info {
+    echo ""
+    echo "PoolID: $(get-pool-id)"
+    get-pool-data | jq
+}
 
 function stake-key-register {
     echo ""

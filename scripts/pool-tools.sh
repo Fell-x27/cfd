@@ -261,7 +261,7 @@ function gen-pool-cert {
     fi      
 }
 
-function get-pool-data {
+function get-pool-id {
     local COLD_KEYS=$CARDANO_KEYS_DIR/cold
 
     if [ ! -f "$CARDANO_KEYS_DIR/payment/stake.skey" ]; then
@@ -277,8 +277,13 @@ function get-pool-data {
 
     local POOL_ID=$($CARDANO_BINARIES_DIR/cardano-cli stake-pool id \
     --cold-verification-key-file $COLD_KEYS/cold.vkey)
-    
-    echo $(wrap-cli-command get-pool-state $POOL_ID)    
+
+    echo $POOL_ID
+}
+
+function get-pool-data {   
+    local POOL_ID=$(get-pool-id)
+    echo $(wrap-cli-command get-pool-state ${POOL_ID})    
 }
 
 
