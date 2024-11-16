@@ -29,13 +29,16 @@ function reg-stake-key {
 
     if [ "$STAKE_ADDR_STATE" == "[]" ]; then
         #NOT REGISTERED
-        $CARDANO_BINARIES_DIR/cardano-cli stake-address registration-certificate \
+        DEPOSIT=$(jq -r ".stakeAddressDeposit" $CARDANO_CONFIG_DIR/protocol.json)
+
+        $CARDANO_BINARIES_DIR/cardano-cli latest stake-address registration-certificate \
         --stake-verification-key-file $CARDANO_KEYS_DIR/payment/stake.vkey \
+        --key-reg-deposit-amt $DEPOSIT \
         --out-file $CARDANO_KEYS_DIR/payment/stake.cert
        
         wrap-cli-command get-protocol   
  
-        build-tx "tx" $(jq -r ".stakeAddressDeposit" $CARDANO_CONFIG_DIR/protocol.json) 0 $CARDANO_KEYS_DIR/payment/stake.cert
+        build-tx "tx" $DEPOSIT 0 $CARDANO_KEYS_DIR/payment/stake.cert
         sign-tx "tx" $CARDANO_KEYS_DIR/payment/payment.skey $CARDANO_KEYS_DIR/payment/stake.skey
         echo "Trying to register..."
         send-tx  "tx"
@@ -67,22 +70,27 @@ function unreg-stake-key {
         echo -e "${BOLD}${WHITE_ON_RED} ERROR :${NORMAL} Your stake key is not registered"
     else
         local REWARDS=$(echo $STAKE_ADDR_STATE | jq -r '.[0].rewardAccountBalance')
-        
+        local DEPOSIT=$(echo $STAKE_ADDR_STATE | jq -r '.[0].delegationDeposit')
+
         echo -e "${BLACK_ON_YELLOW} Warning! ${NORMAL} Your stake key will be de-registered!"
         echo -e "All your pending rewards (if any) will be ${BOLD}${UNDERLINE}transered to your wallet${NORMAL}!"
         echo -e "You have $REWARDS Lovelace in rewards."
+        echo -e "The deposit of ${DEPOSIT} Lovelace will also be returned to your wallet."
+
 
         if ! are-you-sure-dialog; then            
             echo "Aborted.";
             exit 1
         fi
-    
-        $CARDANO_BINARIES_DIR/cardano-cli stake-address deregistration-certificate \
+
+        wrap-cli-command get-protocol
+
+        $CARDANO_BINARIES_DIR/cardano-cli latest stake-address deregistration-certificate \
             --stake-verification-key-file $CARDANO_KEYS_DIR/payment/stake.vkey \
+            --key-reg-deposit-amt $DEPOSIT \
             --out-file $CARDANO_KEYS_DIR/payment/stake.cert
-       
-        wrap-cli-command get-protocol   
-     
+
+
         build-tx "tx" -$(jq -r ".stakeAddressDeposit" $CARDANO_CONFIG_DIR/protocol.json) $REWARDS $CARDANO_KEYS_DIR/payment/stake.cert
         sign-tx "tx" $CARDANO_KEYS_DIR/payment/payment.skey $CARDANO_KEYS_DIR/payment/stake.skey
         send-tx "tx"
@@ -206,7 +214,7 @@ function gen-pool-cert {
         URL_STATUS=($(curl -Is $META_URL | head -1))
 
         if [ ${#META_URL} -le 64 ] && [ ${URL_STATUS[1]} == "200" ]; then
-          META_HASH=$($CARDANO_BINARIES_DIR/cardano-cli stake-pool metadata-hash \
+          META_HASH=$($CARDANO_BINARIES_DIR/cardano-cli latest stake-pool metadata-hash \
               --pool-metadata-file <(curl -s -L -k $META_URL))
           echo "    URL is OK; Calculated hash: $META_HASH"
         else
@@ -238,7 +246,7 @@ function gen-pool-cert {
     fi
 
 
-    $CARDANO_BINARIES_DIR/cardano-cli stake-pool registration-certificate \
+    $CARDANO_BINARIES_DIR/cardano-cli latest stake-pool registration-certificate \
         --cold-verification-key-file $COLD_KEYS/cold.vkey \
         --vrf-verification-key-file $KES_KEYS/vrf.vkey \
         --pool-pledge $PLEDGE \
@@ -247,7 +255,7 @@ function gen-pool-cert {
         --pool-reward-account-verification-key-file $PAYMENT_KEYS/stake.vkey \
         --pool-owner-stake-verification-key-file $PAYMENT_KEYS/stake.vkey \
         "${MAGIC[@]}" \
-        ${RELAYS[@]} \
+        "${RELAYS[@]}" \
         $META_URL \
         $META_HASH \
         --out-file $CARDANO_POOL_DIR/pool-registration.cert
@@ -275,7 +283,7 @@ function get-pool-id {
     fi
 
 
-    local POOL_ID=$($CARDANO_BINARIES_DIR/cardano-cli stake-pool id \
+    local POOL_ID=$($CARDANO_BINARIES_DIR/cardano-cli latest stake-pool id \
     --cold-verification-key-file $COLD_KEYS/cold.vkey)
 
     echo $POOL_ID
@@ -307,7 +315,7 @@ function reg-pool-cert {
         echo -n "POOL IS NOT REGISTERED..."
         echo "init registration process;"
         
-        $CARDANO_BINARIES_DIR/cardano-cli stake-address delegation-certificate \
+        $CARDANO_BINARIES_DIR/cardano-cli latest stake-address stake-delegation-certificate \
             --stake-verification-key-file $PAYMENT_KEYS/stake.vkey \
             --cold-verification-key-file $COLD_KEYS/cold.vkey \
             --out-file $CARDANO_POOL_DIR/delegation.cert
@@ -335,7 +343,7 @@ function unreg-pool-cert {
     echo "Checking pool status..."
     local POOL_STATE=$(get-pool-data)
     
-    local POOL_ID=$($CARDANO_BINARIES_DIR/cardano-cli stake-pool id \
+    local POOL_ID=$($CARDANO_BINARIES_DIR/cardano-cli latest stake-pool id \
     --cold-verification-key-file $COLD_KEYS/cold.vkey)
     
     local KEY=$(echo "$POOL_STATE" | jq -r 'keys[0]')   
@@ -363,7 +371,7 @@ function unreg-pool-cert {
             
             local CURRENT_EPOCH=$(wrap-cli-command get-current-epoch)
             
-            $CARDANO_BINARIES_DIR/cardano-cli stake-pool deregistration-certificate \
+            $CARDANO_BINARIES_DIR/cardano-cli latest stake-pool deregistration-certificate \
                 --cold-verification-key-file $COLD_KEYS/cold.vkey \
                 --epoch $(expr $CURRENT_EPOCH + $NUMBER) \
                 --out-file $CARDANO_POOL_DIR/pool-deregistration.cert     

@@ -7,18 +7,18 @@ function build-tx {
         CHAINED_UTXO_ID=""
         CHAINED_UTXO_BALANCE=""
     fi
-    
-    if ! [ -z $CHAINED_UTXO_ID ]; then
-        local IS_TX_IN_MEMPOOL=$(wrap-cli-command is-tx-in-mempool $(echo "$CHAINED_UTXO_ID#0" | cut -d'#' -f1))        
-        local TX_STATUS=$(echo "$IS_TX_IN_MEMPOOL" | jq -r '.exists')                 
+
+    if ! [ -z "$CHAINED_UTXO_ID" ] && [ ${#CHAINED_UTXO_ID} -eq 64 ]; then
+        local IS_TX_IN_MEMPOOL=$(wrap-cli-command is-tx-in-mempool $(echo "$CHAINED_UTXO_ID#0" | cut -d'#' -f1))
+        local TX_STATUS=$(echo "$IS_TX_IN_MEMPOOL" | jq -r '.exists')
         if [ "$TX_STATUS" == "false" ]; then
             CHAINED_UTXO_ID=""
             CHAINED_UTXO_BALANCE=""
             rm $CARDANO_KEYS_DIR/chainbuffer     
         fi
-    fi    
-    
-       
+    else
+      unset CHAINED_UTXO_ID
+    fi
 
     local TX_NAME=$1
     local DEPOSIT=${2:-0}
@@ -31,14 +31,14 @@ function build-tx {
     fi    
 
     local CERTIFICATES=("$@")
-    local CERTIFICATES=( $(build-arg-array "--certificate-file" ${CERTIFICATES[@]}) )
+    local CERTIFICATES=( $(build-arg-array "--certificate-file" "${CERTIFICATES[@]}") )
     
     local CHOSEN_UTXO=("0#0" 0)
     local UTXO_list=$(wrap-cli-command get-utxo-json)      
-    local UTXO_hashes=($(echo $UTXO_list | jq -r ". | keys" | jq -r ".[]"))    
-  
-   
-    if [[ -z "$CHAINED_UTXO_ID" || -z "$CHAINED_UTXO_BALANCE" ]]; then  
+    local UTXO_hashes=($(echo $UTXO_list | jq -r ". | keys" | jq -r ".[]"))
+
+
+    if [[ -z "$CHAINED_UTXO_ID" || -z "$CHAINED_UTXO_BALANCE" ]]; then
         for i in "${UTXO_hashes[@]}"
         do
             AMOUNT=$(echo $UTXO_list | jq -r ".[\"$i\"].value.lovelace")
@@ -58,40 +58,25 @@ function build-tx {
         echo -e "There should be at least one UTxO with approximately ${UNDERLINE}$(expr $MIN_UTXO / 1000000) ADA${NORMAL} and no assets:"
         wrap-cli-command get-utxo-pretty
         exit 0
-    fi   
-
-    CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH $CARDANO_BINARIES_DIR/cardano-cli transaction build-raw \
-        --tx-in ${CHOSEN_UTXO[0]} \
-        --tx-out $(cat $CARDANO_KEYS_DIR/payment/base.addr)+0 \
-        $([ "$WITHDRAWAL" -gt 0 ] && echo "--withdrawal $(cat $CARDANO_KEYS_DIR/payment/stake.addr)+$WITHDRAWAL") \
-        --fee 200000 \
-        --out-file $CARDANO_KEYS_DIR/$TX_NAME.raw \
-        ${CERTIFICATES[@]}
+    fi
 
 
-    get-protocol
+    local FEE_RAW=$(CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH $CARDANO_BINARIES_DIR/cardano-cli latest transaction build \
+        --tx-in "${CHOSEN_UTXO[0]}" \
+        $([ "$WITHDRAWAL" -gt 0 ] && echo "--withdrawal $(cat "$CARDANO_KEYS_DIR"/payment/stake.addr)+$WITHDRAWAL") \
+        --change-address $(cat "$CARDANO_KEYS_DIR"/payment/base.addr) \
+        --out-file "$CARDANO_KEYS_DIR"/"$TX_NAME.raw" \
+        "${CERTIFICATES[@]}" \
+        "${MAGIC[@]}"
+        )
 
-    local FEE=($($CARDANO_BINARIES_DIR/cardano-cli transaction calculate-min-fee \
-     --protocol-params-file $CARDANO_CONFIG_DIR/protocol.json  \
-     --tx-in-count 2 \
-     --tx-out-count 2 \
-     --witness-count 4 \
-     --tx-body-file $CARDANO_KEYS_DIR/$TX_NAME.raw \
-    "${MAGIC[@]}"     
-     ))
+    FEE=${FEE_RAW//[^0-9]/}
 
     local CHANGE=$((CHOSEN_UTXO[1] - DEPOSIT - FEE + WITHDRAWAL))
 
-    CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH $CARDANO_BINARIES_DIR/cardano-cli transaction build-raw \
-        --tx-in ${CHOSEN_UTXO[0]} \
-        --tx-out $(cat $CARDANO_KEYS_DIR/payment/base.addr)+$CHANGE \
-        $([ "$WITHDRAWAL" -gt 0 ] && echo "--withdrawal $(cat $CARDANO_KEYS_DIR/payment/stake.addr)+$WITHDRAWAL") \
-        --fee $FEE \
-        --out-file $CARDANO_KEYS_DIR/$TX_NAME.raw \
-        ${CERTIFICATES[@]}
-        
+
     CHAINED_UTXO_BALANCE=$CHANGE
-    CHAINED_UTXO_ID="$($CARDANO_BINARIES_DIR/cardano-cli transaction txid --tx-file $CARDANO_KEYS_DIR/$TX_NAME.raw)#0"
+    CHAINED_UTXO_ID="$($CARDANO_BINARIES_DIR/cardano-cli latest transaction txid --tx-file $CARDANO_KEYS_DIR/$TX_NAME.raw)#0"
     
     echo "CHAINED_UTXO_ID='$CHAINED_UTXO_ID'" > $CARDANO_KEYS_DIR/chainbuffer
     echo "CHAINED_UTXO_BALANCE='$CHAINED_UTXO_BALANCE'" >> $CARDANO_KEYS_DIR/chainbuffer
@@ -110,7 +95,7 @@ function sign-tx {
 
     trap 'for key in "${SIGN_KEYS_PATHS[@]}"; do hide-key "$key"; done' EXIT
 
-    CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH $CARDANO_BINARIES_DIR/cardano-cli transaction sign \
+    CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH $CARDANO_BINARIES_DIR/cardano-cli latest transaction sign \
         --tx-body-file $CARDANO_KEYS_DIR/$TX_NAME.raw \
         $(build-arg-array "--signing-key-file" "${SIGN_KEYS[@]}") \
         "${MAGIC[@]}" \
@@ -130,7 +115,7 @@ function sign-tx {
 function send-tx {
     local TX_NAME=$1
 
-    RESPONSE=$(CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH $CARDANO_BINARIES_DIR/cardano-cli transaction submit \
+    RESPONSE=$(CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH $CARDANO_BINARIES_DIR/cardano-cli latest transaction submit \
         --tx-file $CARDANO_KEYS_DIR/$TX_NAME.signed \
         "${MAGIC[@]}" 2>&1)
     

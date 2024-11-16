@@ -108,7 +108,7 @@ function get-version-from-path {
 function wrap-cli-command {
     local COMMAND=$1
     output=$("$COMMAND" "${@:2}" 2>&1)
-    if echo "$output" | grep -q "does not exist (Connection refused)"; then
+    if echo "$output" | grep -q "cardano-cli: Network.Socket.connect: <socket:"; then
         echo -e "\e[1;41mERROR\e[1;m Can't connect to the Cardano node. Please, check if it launched." 1>&2
         echo "" 1>&2
          exit 1
