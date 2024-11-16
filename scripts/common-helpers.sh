@@ -118,12 +118,12 @@ function wrap-cli-command {
 }
 
 
-function get-binary {
-    local SF_NAME=$1        
-    SUBPATH=$(echo $(from-config ".global.software.\"${SF_NAME}\"") | jq -r '.path')
-
-    $CARDANO_BINARIES_DIR/$SF_NAME/$SUBPATH/
-}
+#function get-binary {
+#    local SF_NAME=$1
+#    SUBPATH=$(echo $(from-config ".global.software.\"${SF_NAME}\"") | jq -r '.path')
+#
+#    $CARDANO_BINARIES_DIR/$SF_NAME/$SUBPATH/
+#}
 
 function build-arg-array {
     local param_name="$1"
@@ -320,7 +320,7 @@ function run-check-sync {
         OUTPUT_MODE="--out-file=/dev/null"
     fi
     
-    CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH $CARDANO_BINARIES_DIR/cardano-cli query tip $OUTPUT_MODE ${MAGIC[@]}
+    CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH $CARDANO_BINARIES_DIR/cardano-cli query tip $OUTPUT_MODE "${MAGIC[@]}"
 }
 
 function get-kes-period-info {
