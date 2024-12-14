@@ -206,7 +206,7 @@ function gen-pool-cert {
         echo "Margin cannot be less than 0. It has been set to 0."
     fi
 
-    read -p "Set metadata URL(64 symbols)[$DEF_META_URL]:" META_URL
+    read -p "Set metadata URL(64 symbols max)[$DEF_META_URL]:" META_URL
     META_URL=${META_URL:-$DEF_META_URL}
     META_URL=$(echo "$META_URL" | sed 's/"//g')
 
@@ -225,7 +225,6 @@ function gen-pool-cert {
 
     read -p "Set relays separated by spaces(IP:PORT IP:PORT IP:PORT)[$DEF_RELAYS]:" RELAYS
     RELAYS=${RELAYS:-$DEF_RELAYS}
-    RELAYS=$(echo "$RELAYS" | sed 's/"//g')
 
 
     echo "{\"PLEDGE\":\"$PLEDGE\", \"OPCOST\":\"$OPCOST\", \"MARGIN\":\"$MARGIN\", \"META_URL\":\"$META_URL\", \"RELAYS\":\"$RELAYS\"}" > $POOL_CONF
@@ -233,9 +232,14 @@ function gen-pool-cert {
     echo ""
 
 
-    RELAYS=($RELAYS) 
-    RELAYS=( "${RELAYS[@]/#/--pool-relay-ipv4 }" )
-    RELAYS=( "${RELAYS[@]/:/ --pool-relay-port }" )
+    IFS=' ' read -r -a RELAYS <<< "${RELAYS//\"/}"
+
+    RELAYS_WITH_FLAGS=()
+    for relay in "${RELAYS[@]}"; do
+        ip="${relay%%:*}"
+        port="${relay##*:}"
+        RELAYS_WITH_FLAGS+=(--pool-relay-ipv4 "$ip" --pool-relay-port "$port")
+    done
 
     if ! [ -z "$META_URL" ]; then
         META_URL="--metadata-url $META_URL"
@@ -255,7 +259,7 @@ function gen-pool-cert {
         --pool-reward-account-verification-key-file $PAYMENT_KEYS/stake.vkey \
         --pool-owner-stake-verification-key-file $PAYMENT_KEYS/stake.vkey \
         "${MAGIC[@]}" \
-        "${RELAYS[@]}" \
+        "${RELAYS_WITH_FLAGS[@]}" \
         $META_URL \
         $META_HASH \
         --out-file $CARDANO_POOL_DIR/pool-registration.cert
