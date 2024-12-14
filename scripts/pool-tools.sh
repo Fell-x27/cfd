@@ -315,11 +315,9 @@ function reg-pool-cert {
         echo -n "POOL IS ALREADY REGISTERED..."
         echo "renewing pool cert;"
         build-tx "tx" 0 0 $CARDANO_POOL_DIR/pool-registration.cert
-        echo "Transaction building..."
-    else 
+    else
         echo -n "POOL IS NOT REGISTERED..."
         echo "Init registration process...;"
-        echo "Transaction building..."
         $CARDANO_BINARIES_DIR/cardano-cli latest stake-address stake-delegation-certificate \
             --stake-verification-key-file $PAYMENT_KEYS/stake.vkey \
             --cold-verification-key-file $COLD_KEYS/cold.vkey \
@@ -333,9 +331,7 @@ function reg-pool-cert {
         rm $CARDANO_POOL_DIR/delegation.cert
     fi
 
-    echo "Transaction signing..."
     sign-tx  "tx" $CARDANO_KEYS_DIR/payment/payment.skey $CARDANO_KEYS_DIR/payment/stake.skey $COLD_KEYS/cold.skey
-    echo "Transaction submitting..."
     if send-tx "tx"; then
         echo "Done!"
         echo -e "${BLACK_ON_YELLOW}Please wait until the transaction is confirmed on the blockchain to check if the pool has been registered.${NORMAL}"

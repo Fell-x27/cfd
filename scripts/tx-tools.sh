@@ -1,6 +1,7 @@
 #!/bin/bash
 
 function build-tx {
+    echo "Transaction building..."
     if [[ -f $CARDANO_KEYS_DIR/chainbuffer ]]; then
         source $CARDANO_KEYS_DIR/chainbuffer
     else
@@ -34,6 +35,7 @@ function build-tx {
     local CERTIFICATES=( $(build-arg-array "--certificate-file" "${CERTIFICATES[@]}") )
     
     local CHOSEN_UTXO=("0#0" 0)
+    echo "Checking balance..."
     local UTXO_list=$(wrap-cli-command get-utxo-json)      
     local UTXO_hashes=($(echo $UTXO_list | jq -r ". | keys" | jq -r ".[]"))
 
@@ -83,6 +85,7 @@ function build-tx {
 }
 
 function sign-tx {
+    echo "Transaction signing..."
     local TX_NAME=$1
     shift
     local SIGN_KEYS=("$@")
@@ -113,6 +116,7 @@ function sign-tx {
 
 
 function send-tx {
+    echo "Transaction submitting..."
     local TX_NAME=$1
 
     RESPONSE=$(CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH $CARDANO_BINARIES_DIR/cardano-cli latest transaction submit \
