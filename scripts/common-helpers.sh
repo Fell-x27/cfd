@@ -8,6 +8,7 @@ UNDERLINE="\033[4m"
 BLACK="\033[30m"
 WHITE="\033[37m"
 GREEN="\033[32m"
+RED="\033[31m"
 
 ON_YELLOW="\033[43m"
 ON_LIGHT_GRAY="\033[47m"
@@ -104,26 +105,57 @@ function get-version-from-path {
     echo "$VERSION"
 }
 
-
 function wrap-cli-command {
     local COMMAND=$1
-    output=$("$COMMAND" "${@:2}" 2>&1)
-    if echo "$output" | grep -q "cardano-cli: Network.Socket.connect: <socket:"; then
-        echo -e "\e[1;41mERROR\e[1;m Can't connect to the Cardano node. Please, check if it launched." 1>&2
-        echo "" 1>&2
-         exit 1
-    elif [ -n "$output" ]; then        
+    shift
+    local args=("$@")
+    local output
+    local error_output
+
+    local tmp_error_file
+    tmp_error_file=$(mktemp)
+
+    {
+        output=$("$COMMAND" "${args[@]}" 2> "$tmp_error_file")
+    }
+
+    error_output=$(cat "$tmp_error_file")
+    rm -f "$tmp_error_file"
+
+    if [[ -n "$error_output" ]]; then
+        if echo "$error_output" | grep -q "cardano-cli: Network.Socket.connect: <socket:"; then
+            echo -e "\e[1;41mERROR\e[1;m Can't connect to the Cardano node. Please, check if it launched." 1>&2
+        else
+            echo "$error_output" 1>&2
+        fi
+        return 1
+    fi
+
+    if [[ " ${args[*]} " == *" transaction submit "* ]] && echo "$output" | grep -q "Transaction successfully submitted"; then
+        local tx_file=""
+        for ((i = 0; i < ${#args[@]}; i++)); do
+            if [[ "${args[i]}" == "--tx-file" ]]; then
+                tx_file="${args[i+1]}"
+                break
+            fi
+        done
+
+        if [[ -n "$tx_file" ]]; then
+            local txid_output
+            txid_output=$(cli latest transaction txid --tx-file "$tx_file" 2>/dev/null)
+            echo -e "$output"
+            echo -e "Transaction ID: $txid_output"
+        fi
+    elif [ -n "$output" ]; then
         echo -e "$output"
-    fi    
+    fi
+
+    return 0
 }
 
 
-#function get-binary {
-#    local SF_NAME=$1
-#    SUBPATH=$(echo $(from-config ".global.software.\"${SF_NAME}\"") | jq -r '.path')
-#
-#    $CARDANO_BINARIES_DIR/$SF_NAME/$SUBPATH/
-#}
+
+
 
 function build-arg-array {
     local param_name="$1"
