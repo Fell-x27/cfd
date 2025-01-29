@@ -356,11 +356,21 @@ function run-check-sync {
 }
 
 function get-kes-period-info {
+    local tmp_file
+    tmp_file=$(mktemp)
+
     CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH \
         $CARDANO_BINARIES_DIR/cardano-cli query kes-period-info \
-        --op-cert-file $KES_KEYS/node.cert \
-        --out-file=/dev/stderr \
+        --op-cert-file "$KES_KEYS/node.cert" \
+        --out-file="$tmp_file" \
         "${MAGIC[@]}" 1>/dev/null
+
+    local json_output
+    json_output=$(<"$tmp_file")
+
+    rm -f "$tmp_file"
+
+    echo "$json_output"
 }
 
 function get-sf-version {
