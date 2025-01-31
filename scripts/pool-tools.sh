@@ -393,64 +393,98 @@ function unreg-pool-cert {
 }
 
 function gen-kes-keys {
+    local KES_KEYS_MISSED=false
+    local KES_KEYS_ACTUAL=false
     local COLD_KEYS=$CARDANO_KEYS_DIR/cold
     local KES_KEYS=$CARDANO_KEYS_DIR/kes
+    local CCLI=$CARDANO_BINARIES_DIR/cardano-cli
+    local KES_SKEY="$KES_KEYS/kes.skey"
+    local KES_VKEY="$KES_KEYS/kes.vkey"
+    local NODE_CERT="$KES_KEYS/node.cert"
+
 
     if [ ! -f "$COLD_KEYS/cold.skey" ] || \
        [ ! -f "$KES_KEYS/vrf.skey" ]; then
         echo -e "${BOLD}${WHITE_ON_RED }ERROR ${NORMAL}: can't find [cold.skey, vrf.skey] keys. Please move them to $COLD_KEYS or launch 'init-pool' to create them."
         exit 1
-    fi    
+    fi
+
+    if [ ! -f "$KES_SKEY" ]; then
+        KES_KEYS_MISSED=true
+    elif [ ! -f "$KES_VKEY" ]; then
+       echo "File $KES_VKEY not found. Creating..."
+       $CCLI key verification-key \
+           --signing-key-file "$KES_SKEY" \
+           --verification-key-file "$KES_VKEY"
+       if [ $? -ne 0 ]; then
+           echo "Error: Failed to create $KES_VKEY."
+           exit 1
+       fi
+    fi
 
     local KES_DURATION=$(cat $CARDANO_CONFIG_DIR/shelley-genesis.json | jq .slotsPerKESPeriod)
     local CURRENT_SLOT=$(wrap-cli-command get-current-slot)
     local CURRENT_KES_PERIOD=$(expr $CURRENT_SLOT / $KES_DURATION)
 
-    $CARDANO_BINARIES_DIR/cardano-cli node key-gen-KES \
-        --verification-key-file $KES_KEYS/kes.vkey \
-        --signing-key-file $KES_KEYS/kes.skey
-   
     local COUNTER_VALUE=0
-    if [ -f "$KES_KEYS/node.cert" ]; then
+    if [ -f "$NODE_CERT" ]; then
+        if [ -f "$KES_VKEY" ]; then
+           KES_CBOR=$(jq -r '.cborHex' "$KES_VKEY" 2>/dev/null)
+           NODE_CERT_CBOR=$(jq -r '.cborHex' "$NODE_CERT" 2>/dev/null)
+           if [[ "$NODE_CERT_CBOR" == *"$KES_CBOR"* ]]; then
+               KES_KEYS_ACTUAL=true
+           fi
+        fi
+
         local KES_PERIOD_INFO=$(wrap-cli-command get-kes-period-info)
         local ON_DISK_STATE=$(jq -r '.qKesOnDiskOperationalCertificateNumber' <<< "$KES_PERIOD_INFO")
         local NODE_STATE=$(jq -r '.qKesNodeStateOperationalCertificateNumber' <<< "$KES_PERIOD_INFO")
 
         if [ -z "$NODE_STATE" ] || [ "$NODE_STATE" == "null" ]; then
             COUNTER_VALUE=0
+            KES_KEYS_ACTUAL=false
         elif [ "$NODE_STATE" -lt "$ON_DISK_STATE" ]; then
             COUNTER_VALUE="$ON_DISK_STATE"
         elif [ "$NODE_STATE" -ge "$ON_DISK_STATE" ]; then
-            COUNTER_VALUE=$((NODE_STATE + 1))            
-        fi   
+            COUNTER_VALUE=$((NODE_STATE + 1))
+            KES_KEYS_ACTUAL=false
+        fi
     fi
 
-    $CARDANO_BINARIES_DIR/cardano-cli node new-counter \
-        --cold-verification-key-file $COLD_KEYS/cold.vkey \
-        --counter-value $COUNTER_VALUE \
-        --operational-certificate-issue-counter-file $COLD_KEYS/cold.counter       
+    if [ "$KES_KEYS_ACTUAL" = false ] || [ "$KES_KEYS_MISSED" = true ]; then
+       $CCLI node key-gen-KES \
+           --verification-key-file $KES_VKEY \
+           --signing-key-file $KES_SKEY
 
-    trap 'hide-key $COLD_KEYS/cold.skey' EXIT
-    reveal-key $COLD_KEYS/cold.skey
+       $CCLI node new-counter \
+           --cold-verification-key-file $COLD_KEYS/cold.vkey \
+           --counter-value $COUNTER_VALUE \
+           --operational-certificate-issue-counter-file $COLD_KEYS/cold.counter
 
-    $CARDANO_BINARIES_DIR/cardano-cli node issue-op-cert \
-        --kes-verification-key-file $KES_KEYS/kes.vkey \
-        --cold-signing-key-file $COLD_KEYS/cold.skey \
-        --operational-certificate-issue-counter $COLD_KEYS/cold.counter \
-        --kes-period $CURRENT_KES_PERIOD \
-        --out-file $KES_KEYS/node.cert
+       trap 'hide-key $COLD_KEYS/cold.skey' EXIT
+           reveal-key $COLD_KEYS/cold.skey
 
-    hide-key $COLD_KEYS/cold.skey
-    trap - EXIT
+       $CCLI node issue-op-cert \
+           --kes-verification-key-file $KES_VKEY \
+           --cold-signing-key-file $COLD_KEYS/cold.skey \
+           --operational-certificate-issue-counter $COLD_KEYS/cold.counter \
+           --kes-period $CURRENT_KES_PERIOD \
+           --out-file $NODE_CERT
 
-    chmod 0600 $KES_KEYS/kes.skey
-    chmod 0600 $KES_KEYS/kes.vkey
-    chmod 0600 $KES_KEYS/node.cert
-    
-    echo ""            
-    echo "New KES are successfully created!"
-    echo -e "${UNDERLINE}kes.skey:${NORMAL} $KES_KEYS/kes.skey"
-    echo -e "${UNDERLINE}kes.vkey:${NORMAL} $KES_KEYS/kes.vkey"
-    echo -e "${UNDERLINE}node.cert:${NORMAL} $KES_KEYS/node.cert"
-    echo "Current KES counter is $COUNTER_VALUE"
+       hide-key $COLD_KEYS/cold.skey
+       trap - EXIT
+
+       chmod 0600 $KES_SKEY
+       chmod 0600 $KES_VKEY
+       chmod 0600 $NODE_CERT
+
+       echo ""
+       echo "New KES are successfully created!"
+       echo -e "${UNDERLINE}kes.skey:${NORMAL} $KES_SKEY"
+       echo -e "${UNDERLINE}kes.vkey:${NORMAL} $KES_VKEY"
+       echo -e "${UNDERLINE}node.cert:${NORMAL} $NODE_CERT"
+       echo "Current KES counter is $COUNTER_VALUE"
+    else
+       echo "KES keys don't need to be recreated yet."
+    fi
 }
