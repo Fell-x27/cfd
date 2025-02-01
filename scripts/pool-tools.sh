@@ -462,7 +462,7 @@ function gen-kes-keys {
            --operational-certificate-issue-counter-file $COLD_KEYS/cold.counter
 
        trap 'hide-key $COLD_KEYS/cold.skey' EXIT
-           reveal-key $COLD_KEYS/cold.skey
+       reveal-key $COLD_KEYS/cold.skey
 
        $CCLI node issue-op-cert \
            --kes-verification-key-file $KES_VKEY \
@@ -483,8 +483,8 @@ function gen-kes-keys {
        echo -e "${UNDERLINE}kes.skey:${NORMAL} $KES_SKEY"
        echo -e "${UNDERLINE}kes.vkey:${NORMAL} $KES_VKEY"
        echo -e "${UNDERLINE}node.cert:${NORMAL} $NODE_CERT"
-       echo "Current KES counter is $COUNTER_VALUE"
     else
        echo "KES keys don't need to be recreated yet."
     fi
+     echo "Current KES counter is $COUNTER_VALUE"
 }
