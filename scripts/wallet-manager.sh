@@ -5,6 +5,7 @@ function wallet-manager {
         "wallet-create|wallet-create|Create a new Shelley wallet for payment operations."
         "wallet-restore|wallet-restore|Restore an existent Shelley wallet with your mnemonic."
         "get-wallet-utxo|get-wallet-utxo|Check your UTXOs."
+        "get-wallet-address-data|get-wallet-address-data|Show your wallet address details."
     )
     prepare_software "cardano-address" "issues"
     CHOSEN_OPTION=${1:-""} 

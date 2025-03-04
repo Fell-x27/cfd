@@ -78,6 +78,29 @@ function get-utxo-pretty {
     fi
 }
 
+inspect_cardano_address() {
+    local address_file="$CARDANO_KEYS_DIR/payment/base.addr"
+
+    if [ -f "$address_file" ]; then
+        local address
+        address=$(<"$address_file")  # Читаем содержимое файла в переменную
+
+        if [[ -z "$address" ]]; then
+            echo "No address in file"
+            return 1
+        fi
+
+        echo "$address" | "$CARDANO_BINARIES_DIR/cardano-address" address inspect
+    else
+        echo -e "${BOLD}${WHITE_ON_RED}ERROR${NORMAL}: you have to create or restore wallet before!" 1>&2
+        return 1
+    fi
+}
+
+# Пример использования:
+# inspect_cardano_address
+
+
 function from-config {
     local PARAM_PATH=$1
     echo $(jq -r "$PARAM_PATH" "$CONFIG_FILE")   

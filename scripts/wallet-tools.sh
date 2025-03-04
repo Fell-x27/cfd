@@ -102,3 +102,7 @@ function get-wallet-utxo {
     validate-node-sync
     wrap-cli-command get-utxo-pretty
 }
+
+function get-wallet-address-data {
+    inspect_cardano_address
+}
