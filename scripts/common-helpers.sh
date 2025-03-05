@@ -332,7 +332,7 @@ function check-ip {
     
 
     if [[ $IP_NUM -ge 1 ]] && [[ $IP_NUM -le ${#IP_LIST[@]} ]]; then
-        NEW_IP=${IP_LIST[$((IP_NUM-1))]}
+        local NEW_IP=${IP_LIST[$((IP_NUM-1))]}
         jq ".global.ip = \"$NEW_IP\"" conf.json > temp.json && mv temp.json conf.json
         echo "IP updated to: $NEW_IP"
     else
