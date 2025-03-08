@@ -89,17 +89,15 @@ inspect_cardano_address() {
             echo "No address in file"
             return 1
         fi
-
+        echo ""
+        echo "Your address:"
+        echo -e "${BOLD}$address${NORMAL}"
         echo "$address" | "$CARDANO_BINARIES_DIR/cardano-address" address inspect
     else
         echo -e "${BOLD}${WHITE_ON_RED}ERROR${NORMAL}: you have to create or restore wallet before!" 1>&2
         return 1
     fi
 }
-
-# Пример использования:
-# inspect_cardano_address
-
 
 function from-config {
     local PARAM_PATH=$1
