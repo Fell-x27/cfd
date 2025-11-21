@@ -17,14 +17,16 @@
 	            "cardano-cli",
 		    "cardano-submit-api"
                 ],
-                "required-files": [
-                    "config.json",
-                    "topology.json",
-                    "byron-genesis.json",
-                    "shelley-genesis.json",
-                    "alonzo-genesis.json",
-                    "conway-genesis.json",
-                    "submit-api-config.json"
+	        "required-files": [
+                  "peer-snapshot.json",
+                  "checkpoints.json",
+                  "config.json",
+                  "topology.json",
+                  "byron-genesis.json",
+                  "shelley-genesis.json",
+                  "alonzo-genesis.json",
+                  "conway-genesis.json",
+                  "submit-api-config.json"
                 ],
                 "required-software": []
             },
@@ -83,6 +85,8 @@
                     "version": "auto",
                     "node-port": "5001",
                     "required-files": {
+                        "peer-snapshot.json": "d https://book.world.dev.cardano.org/environments^/%/peer-snapshot.json",
+                        "checkpoints.json": "d https://book.world.dev.cardano.org/environments^/%/checkpoints.json",
                         "config.json": "d https://book.world.dev.cardano.org/environments^/%/config.json",
                         "topology.json": "d https://book.world.dev.cardano.org/environments^/%/topology.json",
                         "byron-genesis.json": "d https://book.world.dev.cardano.org/environments^/%/byron-genesis.json",
@@ -122,6 +126,8 @@
                     "version": "auto",
                     "node-port": "5002",                    
                     "required-files": {
+                        "peer-snapshot.json": "d https://book.world.dev.cardano.org/environments^/%/peer-snapshot.json",
+                        "checkpoints.json": "d https://book.world.dev.cardano.org/environments^/%/checkpoints.json",
                         "config.json": "d https://book.world.dev.cardano.org/environments^/%/config.json",
                         "topology.json": "d https://book.world.dev.cardano.org/environments^/%/topology.json",
                         "byron-genesis.json": "d https://book.world.dev.cardano.org/environments^/%/byron-genesis.json",
@@ -161,6 +167,8 @@
                     "version": "auto",
                     "node-port": "5003",
                     "required-files": {
+                        "peer-snapshot.json": "d https://book.world.dev.cardano.org/environments^/%/peer-snapshot.json",
+                        "checkpoints.json": "d https://book.world.dev.cardano.org/environments^/%/checkpoints.json",
                         "config.json": "d https://book.world.dev.cardano.org/environments^/%/config.json",
                         "topology.json": "d https://book.world.dev.cardano.org/environments^/%/topology.json",
                         "byron-genesis.json": "d https://book.world.dev.cardano.org/environments^/%/byron-genesis.json",

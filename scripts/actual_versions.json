@@ -1,18 +1,18 @@
 {
   "mainnet": {
-      "cardano-node": "10.4.1",
+      "cardano-node": "10.5.1",
       "cardano-db-sync": "13.6.0.5",
       "cardano-address": "4.0.0",
       "cardano-wallet": "v2025-03-31"
   },
   "preprod": {
-      "cardano-node": "10.4.1",
+      "cardano-node": "10.5.1",
       "cardano-db-sync": "13.6.0.5",
       "cardano-address": "4.0.0",
       "cardano-wallet": "v2025-03-31"
   },
   "preview": {
-      "cardano-node": "10.4.1",
+      "cardano-node": "10.5.1",
       "cardano-db-sync": "13.6.0.5",
       "cardano-address": "4.0.0",
       "cardano-wallet": "v2025-03-31"
