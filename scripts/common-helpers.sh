@@ -163,7 +163,7 @@ function wrap-cli-command {
 
         if [[ -n "$tx_file" ]]; then
             local txid_output
-            txid_output=$(cli latest transaction txid --tx-file "$tx_file" 2>/dev/null)
+            txid_output=$(cli latest transaction txid --output-text --tx-file "$tx_file" 2>/dev/null)
             echo -e "$output"
             echo -e "Transaction ID: $txid_output"
         fi
