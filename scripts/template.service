@@ -1,0 +1,31 @@
+[Install]
+WantedBy=multi-user.target
+
+[Unit]
+Description        = %name% %network%
+Wants              = network-online.target
+After              = network-online.target
+
+[Service]
+Type               = simple
+WorkingDirectory   = %homedir%
+ExecStart          = %homedir%/cardano.sh %network% run-software %runner%
+ExecReload         = /bin/kill -HUP $MAINPID
+KillSignal         = SIGINT
+RestartKillSignal  = SIGINT
+TimeoutStopSec     = 300
+Restart            = always
+RestartSec         = 5
+
+RuntimeDirectory   = %name%
+RuntimeDirectoryMode = 0750
+PIDFile            = /run/%name%/%name%_%network%.pid
+
+LimitNOFILE        = 65536
+TasksMax           = 18100
+SyslogIdentifier   = %name%_%network%
+OOMScoreAdjust     = -1000
+UMask              = 002
+
+User               = %user%
+Group              = %user%

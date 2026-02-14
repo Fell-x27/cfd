@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 function network-manager {    
     local AVAILABLE_NETWORKS=$(from-config '.networks | keys[]')
     local NETWORKS_ARR=($AVAILABLE_NETWORKS)

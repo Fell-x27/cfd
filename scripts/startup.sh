@@ -37,6 +37,7 @@ CARDANO_BINARIES_DIR=$CARDANO_NETWORKS_DIR/bin
 CARDANO_CONFIG_DIR=$CARDANO_NETWORKS_DIR/config
 CARDANO_POOL_DIR=$CARDANO_NETWORKS_DIR/pool
 CARDANO_KEYS_DIR=$CARDANO_NETWORKS_DIR/keys
+CARDANO_SERVICES_DIR=$CARDANO_NETWORKS_DIR/services
 CARDANO_SOCKET_PATH=$CARDANO_NETWORKS_DIR/cardano.socket
 
 mkdir -p $CARDANO_SOFTWARE_DIR
@@ -46,6 +47,7 @@ mkdir -p $CARDANO_BINARIES_DIR
 mkdir -p $CARDANO_CONFIG_DIR
 mkdir -p $CARDANO_POOL_DIR
 mkdir -p $CARDANO_KEYS_DIR
+mkdir -p $CARDANO_SERVICES_DIR
 
 check-gpg-is-ready
 check-keyring-initialized
@@ -65,4 +67,3 @@ fi
 
 derive-missed-public-keys
 derive-missed-addresses
-

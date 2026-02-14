@@ -6,11 +6,12 @@ function init-cfd {
     local OPTION_N_DESCRIPTIONS=(
         "install-software|install-software|Display menu with available Cardano software for installation only."
         "run-software|run-software|Display menu with available Cardano software."
-        "check-sync|check-sync|Check the sync state of an already launched node."
+        "create-service|service-manager|Create systemd unit with available Cardano software."
         "wallet-manager|wallet-manager|Display menu for wallet related actions."
         "pool-manager|pool-manager|Display menu for pool related actions."
         "database-manager|database-manager|Display menu for actions related to the db-sync database."
         "keyring-manager|keyring-manager|Manage and secure your private keys."
+        "check-sync|check-sync|Check the sync state of an already launched node."
         "cli|cli|An enhanced cardano-cli wrapper that automatically handles network-magic and socket-path issues."
     )
 
