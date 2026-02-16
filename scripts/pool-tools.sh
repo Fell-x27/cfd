@@ -162,7 +162,74 @@ function gen-pool-cert {
     local MIN_POOL_COST=$(jq -r ".minPoolCost" $CARDANO_CONFIG_DIR/protocol.json)
 
     if ! test -f "$POOL_CONF"; then
-        echo "{\"PLEDGE\":\"0\", \"OPCOST\":\"$MIN_POOL_COST\", \"MARGIN\":\"0\", \"META_URL\":\"\", \"RELAYS\":\"\"}" > $POOL_CONF
+        local SETTINGS_LOADED_FROM_CHAIN=false
+
+        if test -f "$COLD_KEYS/cold.vkey"; then
+            echo "Pool settings file is missing. Trying to fetch defaults from blockchain..."
+
+            local POOL_ID
+            POOL_ID=$(CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH \
+                $CARDANO_BINARIES_DIR/cardano-cli latest stake-pool id \
+                --cold-verification-key-file "$COLD_KEYS/cold.vkey" 2>/dev/null)
+
+            if [ -n "$POOL_ID" ]; then
+                local POOL_STATE_JSON
+                POOL_STATE_JSON=$(CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH \
+                    $CARDANO_BINARIES_DIR/cardano-cli latest query pool-state \
+                    --stake-pool-id "$POOL_ID" \
+                    "${MAGIC[@]}" 2>/dev/null)
+
+                local POOL_PARAMS_JSON
+                POOL_PARAMS_JSON=$(echo "$POOL_STATE_JSON" | jq -c --arg pool_id "$POOL_ID" \
+                    'if .[$pool_id] == null then null else (.[$pool_id].futurePoolParams // .[$pool_id].poolParams) end' 2>/dev/null)
+
+                if [ -n "$POOL_PARAMS_JSON" ] && [ "$POOL_PARAMS_JSON" != "null" ]; then
+                    local DEF_PLEDGE_FROM_CHAIN
+                    local DEF_OPCOST_FROM_CHAIN
+                    local DEF_MARGIN_FROM_CHAIN
+                    local DEF_META_URL_FROM_CHAIN
+                    local DEF_RELAYS_FROM_CHAIN
+
+                    DEF_PLEDGE_FROM_CHAIN=$(echo "$POOL_PARAMS_JSON" | jq -r '.pledge // 0')
+                    DEF_OPCOST_FROM_CHAIN=$(echo "$POOL_PARAMS_JSON" | jq -r '.cost // 0')
+                    DEF_MARGIN_FROM_CHAIN=$(echo "$POOL_PARAMS_JSON" | jq -r '.margin // 0')
+                    DEF_META_URL_FROM_CHAIN=$(echo "$POOL_PARAMS_JSON" | jq -r '.metadata.url // ""')
+                    DEF_RELAYS_FROM_CHAIN=$(echo "$POOL_PARAMS_JSON" | jq -r '
+                        [
+                            .relays[]? |
+                            if ."single host address" then
+                                ."single host address" as $host |
+                                if ($host.IPv4 != null and $host.port != null) then
+                                    "\($host.IPv4):\($host.port)"
+                                elif ($host.IPv6 != null and $host.port != null) then
+                                    "\($host.IPv6):\($host.port)"
+                                else
+                                    empty
+                                end
+                            elif ."single host name" then
+                                ."single host name" as $host |
+                                if ($host.dnsName != null and $host.port != null) then
+                                    "\($host.dnsName):\($host.port)"
+                                else
+                                    empty
+                                end
+                            else
+                                empty
+                            end
+                        ] | join(" ")
+                    ')
+
+                    echo "{\"PLEDGE\":\"$DEF_PLEDGE_FROM_CHAIN\", \"OPCOST\":\"$DEF_OPCOST_FROM_CHAIN\", \"MARGIN\":\"$DEF_MARGIN_FROM_CHAIN\", \"META_URL\":\"$DEF_META_URL_FROM_CHAIN\", \"RELAYS\":\"$DEF_RELAYS_FROM_CHAIN\"}" > "$POOL_CONF"
+                    SETTINGS_LOADED_FROM_CHAIN=true
+                    echo "On-chain defaults applied for pool id: $POOL_ID"
+                fi
+            fi
+        fi
+
+        if [ "$SETTINGS_LOADED_FROM_CHAIN" = false ]; then
+            echo "Unable to fetch on-chain defaults. Using protocol defaults."
+            echo "{\"PLEDGE\":\"0\", \"OPCOST\":\"$MIN_POOL_COST\", \"MARGIN\":\"0\", \"META_URL\":\"\", \"RELAYS\":\"\"}" > "$POOL_CONF"
+        fi
     fi
 
 
