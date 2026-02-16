@@ -309,7 +309,7 @@ function check-dependencies() {
 
 
 function check-ip {
-    local IP_LIST=($(hostname -I) "127.0.0.1")    
+    local IP_LIST=($(hostname -I) "127.0.0.1" "0.0.0.0")
     local CURRENT_IP=$(from-config '.global.ip')
 
     if [[ -z "$CURRENT_IP" ]]; then
@@ -443,4 +443,3 @@ function is-tx-in-mempool {
     tx-exists $TX_ID \
     "${MAGIC[@]}"
 }
-
