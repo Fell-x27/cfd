@@ -53,9 +53,10 @@
             },
             "cardano-address": {
                 "download-links": [
-                    "https://github.com/input-output-hk/cardano-addresses/releases/download/#/"
+                    "https://github.com/input-output-hk/cardano-addresses/releases/download/#/",
+                    "https://github.com/IntersectMBO/cardano-addresses/releases/download/#/"
                 ],
-                "name-format": "cardano-addresses-#-linux64.tar.gz",
+                "name-format": "cardano-address-#-linux.tar.gz",
                 "path": "bin/",
                 "desired-files": [
                     "*"
