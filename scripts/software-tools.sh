@@ -15,6 +15,92 @@ function prepare_software {
     fi
 }
 
+function has-desired-files-in-bin {
+    local SF_BIN_DIR="$1"
+    shift
+    local DESIRED_FILES_ARR=("$@")
+
+    if [ ${#DESIRED_FILES_ARR[@]} -eq 1 ] && [ "${DESIRED_FILES_ARR[0]}" == "*" ]; then
+        find "$SF_BIN_DIR" -type f -print -quit | grep -q .
+        return $?
+    fi
+
+    for DESIRED_ENTRY in "${DESIRED_FILES_ARR[@]}"; do
+        local ENTRY_NO_SLASH="${DESIRED_ENTRY%/}"
+        local ENTRY_BASENAME
+        ENTRY_BASENAME=$(basename "$ENTRY_NO_SLASH")
+
+        if [[ "$DESIRED_ENTRY" == */ ]]; then
+            if ! [ -d "$SF_BIN_DIR/$ENTRY_BASENAME" ]; then
+                return 1
+            fi
+        else
+            if ! [ -f "$SF_BIN_DIR/$ENTRY_BASENAME" ]; then
+                return 1
+            fi
+        fi
+    done
+
+    return 0
+}
+
+function flatten-desired-files-from-archive {
+    local SOURCE_DIR="$1"
+    local SF_BIN_DIR="$2"
+    shift 2
+    local DESIRED_FILES_ARR=("$@")
+    local SOMETHING_COPIED=false
+
+    mkdir -p "$SF_BIN_DIR"
+
+    if [ ${#DESIRED_FILES_ARR[@]} -eq 1 ] && [ "${DESIRED_FILES_ARR[0]}" == "*" ]; then
+        while IFS= read -r -d '' FOUND_FILE; do
+            SOMETHING_COPIED=true
+            cp -f "$FOUND_FILE" "$SF_BIN_DIR/$(basename "$FOUND_FILE")"
+        done < <(find "$SOURCE_DIR" -type f -print0)
+
+        if [ "$SOMETHING_COPIED" = false ]; then
+            echo "Error: no files found in downloaded archive."
+            return 1
+        fi
+        return 0
+    fi
+
+    for DESIRED_ENTRY in "${DESIRED_FILES_ARR[@]}"; do
+        local ENTRY_NO_SLASH="${DESIRED_ENTRY%/}"
+        local ENTRY_BASENAME
+        local ENTRY_FOUND=false
+
+        ENTRY_BASENAME=$(basename "$ENTRY_NO_SLASH")
+
+        if [[ "$DESIRED_ENTRY" == */ ]]; then
+            while IFS= read -r -d '' FOUND_DIR; do
+                ENTRY_FOUND=true
+                SOMETHING_COPIED=true
+                rm -rf "$SF_BIN_DIR/$ENTRY_BASENAME"
+                cp -a "$FOUND_DIR" "$SF_BIN_DIR/$ENTRY_BASENAME"
+            done < <(find "$SOURCE_DIR" -type d -name "$ENTRY_BASENAME" -print0)
+        else
+            while IFS= read -r -d '' FOUND_FILE; do
+                ENTRY_FOUND=true
+                SOMETHING_COPIED=true
+                cp -f "$FOUND_FILE" "$SF_BIN_DIR/$ENTRY_BASENAME"
+            done < <(find "$SOURCE_DIR" -type f -name "$ENTRY_BASENAME" -print0)
+        fi
+
+        if [ "$ENTRY_FOUND" = false ]; then
+            echo "Warning: desired entry \"$DESIRED_ENTRY\" not found in archive."
+        fi
+    done
+
+    if [ "$SOMETHING_COPIED" = false ]; then
+        echo "Error: no desired files copied from downloaded archive."
+        return 1
+    fi
+
+    return 0
+}
+
 function is-installed {
     local SF_NAME=$1
     local SF_GLOBAL_META=$(from-config ".global.software.\"${SF_NAME}\"")
@@ -48,6 +134,9 @@ function software_deploy(){
     
     if ! [ "$SF_LOCAL_META" == null ]; then
         local DESIRED_SF_VERSION=$(get-sf-version $SF_NAME)
+        local DESIRED_FILES_ARR=()
+        mapfile -t DESIRED_FILES_ARR < <(echo "$SF_GLOBAL_META" | jq -r '.["desired-files"][]')
+
         if [ "$(echo "$DESIRED_SF_VERSION" | awk -F'-' '{print NF-1}')" -eq 1 ]; then
             DESIRED_SF_VERSION_BASE=$(echo "$DESIRED_SF_VERSION" | awk -F'-' '{print $1}')
             DESIRED_SF_VERSION_SUFFIX=$(echo "$DESIRED_SF_VERSION" | awk -F'-' '{print "-"$2}')
@@ -68,10 +157,7 @@ function software_deploy(){
         fi 
 
             
-        local SUBPATH=$(echo $SF_GLOBAL_META | jq -r '.path')
-        SUBPATH=$(replace-placeholders "$SUBPATH" "$DESIRED_SF_VERSION" "$NETWORK_NAME")
-        
-        if ! test -f "$SF_BIN_DIR/$SUBPATH/$SF_NAME"; then            
+        if ! has-desired-files-in-bin "$SF_BIN_DIR" "${DESIRED_FILES_ARR[@]}"; then            
             
             if [ "$VERBOSITY" != "silent" ]; then
                 echo ""
@@ -95,7 +181,20 @@ function software_deploy(){
                 fi
             done
 
-            download_and_extract_targz $DOWNLOAD_LINK $SF_BIN_DIR
+            local TMP_EXTRACT_DIR
+            TMP_EXTRACT_DIR=$(mktemp -d)
+
+            if ! download_and_extract_targz "$DOWNLOAD_LINK" "$TMP_EXTRACT_DIR"; then
+                rm -rf "$TMP_EXTRACT_DIR"
+                return 1
+            fi
+
+            if ! flatten-desired-files-from-archive "$TMP_EXTRACT_DIR" "$SF_BIN_DIR" "${DESIRED_FILES_ARR[@]}"; then
+                rm -rf "$TMP_EXTRACT_DIR"
+                return 1
+            fi
+
+            rm -rf "$TMP_EXTRACT_DIR"
            
             
             if [ "$VERBOSITY" != "silent" ]; then
@@ -110,22 +209,34 @@ function software_deploy(){
                 echo "";                     
             fi
         fi
-        
-        local DESIRED_FILES=$(echo $SF_GLOBAL_META | jq -r '.["desired-files"] | .[]')
-        
         if [ "$VERBOSITY" != "silent" ] && [ "$VERBOSITY" != "issues" ]; then
             echo "Validating $SF_NAME installation..."
             spin &
             spinner_pid=$!
         fi
 
-        if [ "$DESIRED_FILES" != "*" ]; then
-            FILES=$(echo "$DESIRED_FILES" | xargs -I{} find "$SF_BIN_DIR" -type f -name '{}')
+        local FILES=()
+        if [ ${#DESIRED_FILES_ARR[@]} -eq 1 ] && [ "${DESIRED_FILES_ARR[0]}" == "*" ]; then
+            while IFS= read -r -d '' FILE; do
+                FILES+=("$FILE")
+            done < <(find "$SF_BIN_DIR" -type f -print0)
         else
-            FILES=$(find "$SF_BIN_DIR" -type f)
+            for DESIRED_ENTRY in "${DESIRED_FILES_ARR[@]}"; do
+                local ENTRY_NO_SLASH="${DESIRED_ENTRY%/}"
+                local ENTRY_BASENAME
+                ENTRY_BASENAME=$(basename "$ENTRY_NO_SLASH")
+
+                if [ -d "$SF_BIN_DIR/$ENTRY_BASENAME" ]; then
+                    while IFS= read -r -d '' FILE; do
+                        FILES+=("$FILE")
+                    done < <(find "$SF_BIN_DIR/$ENTRY_BASENAME" -type f -print0)
+                elif [ -f "$SF_BIN_DIR/$ENTRY_BASENAME" ]; then
+                    FILES+=("$SF_BIN_DIR/$ENTRY_BASENAME")
+                fi
+            done
         fi
 
-        for FILE in $FILES; do
+        for FILE in "${FILES[@]}"; do
             local BASENAME=$(basename $FILE)
             local OLD_LINK=$(readlink $CARDANO_BINARIES_DIR/$BASENAME)
             local OLD_VERSION=$(get-version-from-path "$OLD_LINK" "$SF_GLOBAL_DIR")
@@ -297,5 +408,3 @@ function software_config() {
     recursive-config-linking $SF_CONF_DIR_DEF $SF_CONF_DIR_USER $DESIRED_SF_VERSION $SF_GLOBAL_DIR $CARDANO_CONFIG_DIR
     return 0
 }
-
-

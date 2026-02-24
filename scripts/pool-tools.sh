@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function get-pool-state {
-    local $POOL_ID=$1
+    local POOL_ID=$1
     CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH \
     $CARDANO_BINARIES_DIR/cardano-cli query pool-state \
     "${MAGIC[@]}" \
@@ -9,7 +9,7 @@ function get-pool-state {
 }
 
 function get-stake-key-state {
-    local $STAKE_ADDR=$1
+    local STAKE_ADDR=$1
     CARDANO_NODE_SOCKET_PATH=$CARDANO_SOCKET_PATH \
         $CARDANO_BINARIES_DIR/cardano-cli query stake-address-info \
         --address $STAKE_ADDR \
@@ -180,8 +180,25 @@ function gen-pool-cert {
                     "${MAGIC[@]}" 2>/dev/null)
 
                 local POOL_PARAMS_JSON
-                POOL_PARAMS_JSON=$(echo "$POOL_STATE_JSON" | jq -c --arg pool_id "$POOL_ID" \
-                    'if .[$pool_id] == null then null else (.[$pool_id].futurePoolParams // .[$pool_id].poolParams) end' 2>/dev/null)
+                POOL_PARAMS_JSON=$(echo "$POOL_STATE_JSON" | jq -c --arg pool_id "$POOL_ID" '
+                    if type != "object" then
+                        null
+                    else
+                        (
+                            if .[$pool_id] != null then
+                                .[$pool_id]
+                            else
+                                # Some cardano-cli versions return an object keyed by pool key hash (hex), not bech32 pool id.
+                                (to_entries[0].value // null)
+                            end
+                        ) as $entry
+                        | if $entry == null then
+                            null
+                          else
+                            ($entry.futurePoolParams // $entry.poolParams)
+                          end
+                    end
+                ' 2>/dev/null)
 
                 if [ -n "$POOL_PARAMS_JSON" ] && [ "$POOL_PARAMS_JSON" != "null" ]; then
                     local DEF_PLEDGE_FROM_CHAIN
